@@ -29,17 +29,45 @@ impl KiroApp {
     fn launch_game(&mut self, game: &Game) {
         #[cfg(target_os = "windows")]
         {
-            let res = std::process::Command::new("rundll32")
-                .args(["url.dll,FileProtocolHandler", &game.launch_uri])
-                .spawn();
+            use std::ffi::OsStr;
+            use std::os::windows::ffi::OsStrExt;
 
-            match res {
-                Ok(_) => {
-                    self.status_message = Some(format!("Iniciando: {}", game.title));
-                }
-                Err(err) => {
-                    self.status_message = Some(format!("Erro ao iniciar: {}", err));
-                }
+            let wide_uri: Vec<u16> = OsStr::new(&game.launch_uri)
+                .encode_wide()
+                .chain(std::iter::once(0))
+                .collect();
+            let wide_open: Vec<u16> = OsStr::new("open")
+                .encode_wide()
+                .chain(std::iter::once(0))
+                .collect();
+
+            #[link(name = "shell32")]
+            extern "system" {
+                fn ShellExecuteW(
+                    hwnd: *mut std::ffi::c_void,
+                    lpOperation: *const u16,
+                    lpFile: *const u16,
+                    lpParameters: *const u16,
+                    lpDirectory: *const u16,
+                    nShowCmd: i32,
+                ) -> isize;
+            }
+
+            let ret = unsafe {
+                ShellExecuteW(
+                    std::ptr::null_mut(),
+                    wide_open.as_ptr(),
+                    wide_uri.as_ptr(),
+                    std::ptr::null(),
+                    std::ptr::null(),
+                    1, // SW_SHOWNORMAL
+                )
+            };
+
+            if ret > 32 {
+                self.status_message = Some(format!("Iniciando: {}", game.title));
+            } else {
+                self.status_message = Some(format!("Erro ao iniciar (código {}): {}", ret, game.title));
             }
         }
 

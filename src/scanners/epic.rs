@@ -14,6 +14,10 @@ struct EpicManifest {
     display_name: Option<String>,
     #[serde(rename = "AppName")]
     app_name: Option<String>,
+    #[serde(rename = "CatalogNamespace")]
+    catalog_namespace: Option<String>,
+    #[serde(rename = "CatalogItemId")]
+    catalog_item_id: Option<String>,
     #[serde(rename = "InstallLocation")]
     install_location: Option<String>,
     #[serde(rename = "MainGameAppName", default)]
@@ -118,7 +122,18 @@ impl EpicScanner {
             return None;
         }
 
-        let launch_uri = format!("com.epicgames.launcher://apps/{}?action=launch&silent=true", app_name);
+        // Epic URI format: com.epicgames.launcher://apps/<CatalogNamespace>%3A<CatalogItemId>%3A<AppName>?action=launch&silent=true
+        let app_identifier = if let (Some(ns), Some(item_id)) = (&manifest.catalog_namespace, &manifest.catalog_item_id) {
+            if !ns.is_empty() && !item_id.is_empty() {
+                format!("{}%3A{}%3A{}", ns, item_id, app_name)
+            } else {
+                app_name.clone()
+            }
+        } else {
+            app_name.clone()
+        };
+
+        let launch_uri = format!("com.epicgames.launcher://apps/{}?action=launch&silent=true", app_identifier);
         let mut game = Game::new(&app_name, title, Platform::EpicGames, launch_uri);
 
         if let Some(install_dir) = manifest.install_location {
