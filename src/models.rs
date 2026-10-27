@@ -29,6 +29,7 @@ pub struct Game {
     pub platform: Platform,
     pub launch_uri: String,
     pub install_dir: Option<PathBuf>,
+    pub executable_path: Option<PathBuf>,
     pub cover_image_path: Option<PathBuf>,
 }
 
@@ -45,6 +46,7 @@ impl Game {
             platform,
             launch_uri: launch_uri.into(),
             install_dir: None,
+            executable_path: None,
             cover_image_path: None,
         }
     }

@@ -20,6 +20,8 @@ struct EpicManifest {
     catalog_item_id: Option<String>,
     #[serde(rename = "InstallLocation")]
     install_location: Option<String>,
+    #[serde(rename = "LaunchExecutable")]
+    launch_executable: Option<String>,
     #[serde(rename = "MainGameAppName", default)]
     main_game_app_name: Option<String>,
     #[serde(rename = "bIsIncompleteInstall", default)]
@@ -139,6 +141,12 @@ impl EpicScanner {
         if let Some(install_dir) = manifest.install_location {
             let p = PathBuf::from(install_dir);
             if p.exists() {
+                if let Some(exe_name) = &manifest.launch_executable {
+                    let full_exe = p.join(exe_name);
+                    if full_exe.exists() {
+                        game.executable_path = Some(full_exe);
+                    }
+                }
                 game.install_dir = Some(p);
             }
         }
@@ -156,7 +164,7 @@ mod tests {
         let games = EpicScanner::scan_installed_games();
         println!("Epic Games encontradas: {}", games.len());
         for game in &games {
-            println!("- {} (URI: {})", game.title, game.launch_uri);
+            println!("- {} (Exe: {:?})", game.title, game.executable_path);
         }
     }
 }

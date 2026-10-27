@@ -29,6 +29,26 @@ impl KiroApp {
     fn launch_game(&mut self, game: &Game) {
         #[cfg(target_os = "windows")]
         {
+            // 1. Try direct executable launch first if available
+            if let Some(exe_path) = &game.executable_path {
+                if exe_path.exists() {
+                    let mut cmd = std::process::Command::new(exe_path);
+                    if let Some(parent) = exe_path.parent() {
+                        cmd.current_dir(parent);
+                    }
+                    match cmd.spawn() {
+                        Ok(_) => {
+                            self.status_message = Some(format!("Iniciado diretamente (.exe): {}", game.title));
+                            return;
+                        }
+                        Err(err) => {
+                            eprintln!("Falha na execução direta: {}, tentando fallback para launcher...", err);
+                        }
+                    }
+                }
+            }
+
+            // 2. Fallback to ShellExecuteW with launch_uri
             use std::ffi::OsStr;
             use std::os::windows::ffi::OsStrExt;
 
@@ -246,6 +266,14 @@ impl eframe::App for KiroApp {
                                                 .size(15.0)
                                                 .strong(),
                                         );
+
+                                        if game.executable_path.is_some() {
+                                            ui.label(
+                                                egui::RichText::new("⚡ .exe")
+                                                    .color(egui::Color32::from_rgb(100, 210, 140))
+                                                    .small(),
+                                            );
+                                        }
 
                                         // Right side Play Button
                                         ui.with_layout(
