@@ -26,6 +26,10 @@ struct EpicManifest {
     main_game_app_name: Option<String>,
     #[serde(rename = "bIsIncompleteInstall", default)]
     is_incomplete_install: Option<bool>,
+    #[serde(rename = "InstallSize")]
+    install_size: Option<u64>,
+    #[serde(rename = "AppVersionString")]
+    app_version_string: Option<String>,
 }
 
 pub struct EpicScanner;
@@ -182,6 +186,8 @@ impl EpicScanner {
 
         let launch_uri = format!("com.epicgames.launcher://apps/{}?action=launch&silent=true", app_identifier);
         let mut game = Game::new(&app_name, title, Platform::EpicGames, launch_uri);
+        game.install_size = manifest.install_size;
+        game.version = manifest.app_version_string;
 
         if let Some(install_dir) = manifest.install_location {
             let p = PathBuf::from(install_dir);
@@ -212,7 +218,12 @@ mod tests {
         let games = EpicScanner::scan_installed_games();
         println!("Epic Games encontradas: {}", games.len());
         for game in &games {
-            println!("- {} (Exe: {:?})", game.title, game.executable_path);
+            println!("- {} (Size: {:?}, Ver: {:?}, Exe: {:?})", 
+                game.title, 
+                game.formatted_size(), 
+                game.version,
+                game.executable_path
+            );
         }
     }
 }

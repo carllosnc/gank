@@ -130,10 +130,11 @@ impl SteamScanner {
                     let name_str = file_name.to_string_lossy();
 
                     if name_str.starts_with("appmanifest_") && name_str.ends_with(".acf") {
-                        if let Some(game) = Self::parse_manifest(&entry.path(), &lib_path) {
+                        if let Some(mut game) = Self::parse_manifest(&entry.path(), &lib_path) {
                             // Filter out Steamworks Common Redistributables and common tools
                             if game.id != "228980" && !seen_ids.contains(&game.id) {
                                 seen_ids.insert(game.id.clone());
+                                game.cover_image_path = Self::find_cover_image(&steam_path, &game.id);
                                 games.push(game);
                             }
                         }
@@ -147,12 +148,75 @@ impl SteamScanner {
         games
     }
 
+    /// Attempts to locate local cached poster/cover art for a Steam game.
+    pub fn find_cover_image(steam_path: &Path, app_id: &str) -> Option<PathBuf> {
+        let cache_dir = steam_path.join("appcache").join("librarycache").join(app_id);
+
+        // 1. Direct standard vertical 600x900 poster
+        let direct_600 = cache_dir.join("library_600x900.jpg");
+        if direct_600.exists() {
+            return Some(direct_600);
+        }
+
+        // 2. Direct vertical capsule
+        let direct_capsule = cache_dir.join("library_capsule.jpg");
+        if direct_capsule.exists() {
+            return Some(direct_capsule);
+        }
+
+        // 3. Search hash subdirectories for vertical capsule or 600x900
+        if let Ok(entries) = fs::read_dir(&cache_dir) {
+            for entry in entries.flatten() {
+                if entry.path().is_dir() {
+                    let sub_600 = entry.path().join("library_600x900.jpg");
+                    if sub_600.exists() {
+                        return Some(sub_600);
+                    }
+                    let sub_capsule = entry.path().join("library_capsule.jpg");
+                    if sub_capsule.exists() {
+                        return Some(sub_capsule);
+                    }
+                }
+            }
+        }
+
+        // 4. Fallback to header banner if no vertical poster is found
+        let direct_header = cache_dir.join("library_header.jpg");
+        if direct_header.exists() {
+            return Some(direct_header);
+        }
+        if let Ok(entries) = fs::read_dir(&cache_dir) {
+            for entry in entries.flatten() {
+                if entry.path().is_dir() {
+                    let sub_header = entry.path().join("library_header.jpg");
+                    if sub_header.exists() {
+                        return Some(sub_header);
+                    }
+                }
+            }
+        }
+
+        // 5. Root appcache fallback: <appid>_library_600x900.jpg
+        let root_file = steam_path
+            .join("appcache")
+            .join("librarycache")
+            .join(format!("{}_library_600x900.jpg", app_id));
+        if root_file.exists() {
+            return Some(root_file);
+        }
+
+        None
+    }
+
     fn parse_manifest(manifest_path: &Path, library_root: &Path) -> Option<Game> {
         let content = fs::read_to_string(manifest_path).ok()?;
 
         let mut app_id = None;
         let mut name = None;
         let mut install_dir_name = None;
+        let mut size_on_disk = None;
+        let mut last_played = None;
+        let mut build_id = None;
 
         for line in content.lines() {
             let trimmed = line.trim();
@@ -171,12 +235,30 @@ impl SteamScanner {
                 if parts.len() >= 4 {
                     install_dir_name = Some(parts[3].to_string());
                 }
+            } else if trimmed.starts_with("\"SizeOnDisk\"") {
+                let parts: Vec<&str> = trimmed.split('"').collect();
+                if parts.len() >= 4 {
+                    size_on_disk = parts[3].parse::<u64>().ok();
+                }
+            } else if trimmed.starts_with("\"LastPlayed\"") {
+                let parts: Vec<&str> = trimmed.split('"').collect();
+                if parts.len() >= 4 {
+                    last_played = parts[3].parse::<u64>().ok();
+                }
+            } else if trimmed.starts_with("\"buildid\"") {
+                let parts: Vec<&str> = trimmed.split('"').collect();
+                if parts.len() >= 4 {
+                    build_id = Some(format!("build {}", parts[3]));
+                }
             }
         }
 
         if let (Some(id), Some(title)) = (app_id, name) {
             let launch_uri = format!("steam://rungameid/{}", id);
             let mut game = Game::new(&id, title, Platform::Steam, launch_uri);
+            game.install_size = size_on_disk;
+            game.last_played = last_played;
+            game.version = build_id;
 
             if let Some(folder) = install_dir_name {
                 let full_install_path = library_root
@@ -205,8 +287,13 @@ mod tests {
 
         let games = SteamScanner::scan_installed_games();
         println!("Steam games encontradas: {}", games.len());
-        for game in games.iter().take(5) {
-            println!("- {} ({})", game.title, game.launch_uri);
+        for game in games.iter() {
+            println!("- {} (Size: {:?}, Cover: {:?}, LastPlayed: {:?})", 
+                game.title, 
+                game.formatted_size(), 
+                game.cover_image_path,
+                game.formatted_last_played()
+            );
         }
     }
 }

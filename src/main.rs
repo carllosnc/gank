@@ -9,8 +9,8 @@ use ui::KiroApp;
 fn main() -> eframe::Result<()> {
     let native_options = eframe::NativeOptions {
         viewport: eframe::egui::ViewportBuilder::default()
-            .with_inner_size([760.0, 560.0])
-            .with_min_inner_size([480.0, 320.0])
+            .with_inner_size([980.0, 680.0])
+            .with_min_inner_size([540.0, 420.0])
             .with_title("Kiro - Game Hub"),
         renderer: eframe::Renderer::Wgpu,
         ..Default::default()
