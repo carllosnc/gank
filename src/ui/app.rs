@@ -101,6 +101,28 @@ impl eframe::App for KiroApp {
                     ui.add(search_input);
                 });
 
+                ui.add_space(8.0);
+
+                // Platform Filter Chips
+                ui.horizontal(|ui| {
+                    ui.label(egui::RichText::new("Filtrar:").small().color(egui::Color32::from_rgb(140, 145, 155)));
+
+                    let all_selected = self.selected_platform.is_none();
+                    if ui.selectable_label(all_selected, "Todos").clicked() {
+                        self.selected_platform = None;
+                    }
+
+                    let steam_selected = self.selected_platform == Some(Platform::Steam);
+                    if ui.selectable_label(steam_selected, "Steam").clicked() {
+                        self.selected_platform = if steam_selected { None } else { Some(Platform::Steam) };
+                    }
+
+                    let epic_selected = self.selected_platform == Some(Platform::EpicGames);
+                    if ui.selectable_label(epic_selected, "Epic Games").clicked() {
+                        self.selected_platform = if epic_selected { None } else { Some(Platform::EpicGames) };
+                    }
+                });
+
                 if let Some(msg) = &self.status_message {
                     ui.add_space(6.0);
                     ui.label(
