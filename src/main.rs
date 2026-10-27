@@ -3,6 +3,7 @@
 mod models;
 mod scanners;
 mod ui;
+pub mod artwork;
 
 use ui::KiroApp;
 

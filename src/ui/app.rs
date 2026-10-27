@@ -70,12 +70,34 @@ pub struct KiroApp {
     status_message: Option<String>,
     status_tx: Sender<String>,
     status_rx: Receiver<String>,
+    worker_tx: Sender<(String, String, Platform)>,
+    cover_rx: Receiver<(String, std::path::PathBuf)>,
 }
 
 impl Default for KiroApp {
     fn default() -> Self {
         let (status_tx, status_rx) = channel();
+        let (cover_tx, cover_rx) = channel();
+        let (worker_tx, worker_rx) = channel::<(String, String, Platform)>();
+
+        // Spawn background worker thread for cover downloads
+        std::thread::spawn(move || {
+            while let Ok((id, title, platform)) = worker_rx.recv() {
+                if let Some(path) = crate::artwork::fetch_and_cache_cover(&id, &title, platform) {
+                    let _ = cover_tx.send((id, path));
+                }
+            }
+        });
+
         let games = scan_all_platforms();
+
+        // Queue any games without covers for background downloading
+        for game in &games {
+            if game.cover_image_path.is_none() {
+                let _ = worker_tx.send((game.id.clone(), game.title.clone(), game.platform));
+            }
+        }
+
         Self {
             games,
             search_query: String::new(),
@@ -84,6 +106,8 @@ impl Default for KiroApp {
             status_message: None,
             status_tx,
             status_rx,
+            worker_tx,
+            cover_rx,
         }
     }
 }
@@ -200,6 +224,14 @@ impl eframe::App for KiroApp {
             ctx.request_repaint();
         }
 
+        // Process asynchronous cover downloads
+        while let Ok((id, path)) = self.cover_rx.try_recv() {
+            if let Some(game) = self.games.iter_mut().find(|g| g.id == id) {
+                game.cover_image_path = Some(path);
+                ctx.request_repaint();
+            }
+        }
+
         // Top Control Panel
         egui::TopBottomPanel::top("top_panel")
             .frame(
@@ -232,6 +264,11 @@ impl eframe::App for KiroApp {
                             .clicked()
                         {
                             self.games = scan_all_platforms();
+                            for game in &self.games {
+                                if game.cover_image_path.is_none() {
+                                    let _ = self.worker_tx.send((game.id.clone(), game.title.clone(), game.platform));
+                                }
+                            }
                             self.status_message = Some("Lista de jogos atualizada!".to_string());
                         }
 

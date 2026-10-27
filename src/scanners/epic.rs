@@ -189,6 +189,11 @@ impl EpicScanner {
         game.install_size = manifest.install_size;
         game.version = manifest.app_version_string;
 
+        // Check if cover image is available in local cache
+        if let Some(cached_cover) = crate::artwork::get_cached_cover(&app_name) {
+            game.cover_image_path = Some(cached_cover);
+        }
+
         if let Some(install_dir) = manifest.install_location {
             let p = PathBuf::from(install_dir);
             if p.exists() {
@@ -218,9 +223,10 @@ mod tests {
         let games = EpicScanner::scan_installed_games();
         println!("Epic Games encontradas: {}", games.len());
         for game in &games {
-            println!("- {} (Size: {:?}, Ver: {:?}, Exe: {:?})", 
+            println!("- {} (Size: {:?}, Cover: {:?}, Ver: {:?}, Exe: {:?})", 
                 game.title, 
                 game.formatted_size(), 
+                game.cover_image_path,
                 game.version,
                 game.executable_path
             );
