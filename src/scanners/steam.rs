@@ -11,6 +11,41 @@ use winreg::RegKey;
 pub struct SteamScanner;
 
 impl SteamScanner {
+    /// Checks if steam.exe is currently running in Windows.
+    pub fn is_running() -> bool {
+        crate::scanners::process::is_process_running("steam.exe")
+    }
+
+    /// Detects the full path to `steam.exe` via Windows registry or default locations.
+    pub fn find_steam_exe() -> Option<PathBuf> {
+        #[cfg(target_os = "windows")]
+        {
+            let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+            if let Ok(steam_key) = hkcu.open_subkey_with_flags(r"Software\Valve\Steam", KEY_READ) {
+                if let Ok(exe_str) = steam_key.get_value::<String, _>("SteamExe") {
+                    let path = PathBuf::from(exe_str.replace('/', "\\"));
+                    if path.exists() {
+                        return Some(path);
+                    }
+                }
+            }
+        }
+
+        if let Some(base) = Self::find_steam_install_path() {
+            let exe = base.join("steam.exe");
+            if exe.exists() {
+                return Some(exe);
+            }
+        }
+
+        let default_exe = PathBuf::from(r"C:\Program Files (x86)\Steam\steam.exe");
+        if default_exe.exists() {
+            Some(default_exe)
+        } else {
+            None
+        }
+    }
+
     /// Detects the base Steam installation path from the Windows registry.
     pub fn find_steam_install_path() -> Option<PathBuf> {
         #[cfg(target_os = "windows")]
@@ -154,6 +189,24 @@ impl SteamScanner {
             Some(game)
         } else {
             None
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_steam_detection() {
+        println!("Steam install path: {:?}", SteamScanner::find_steam_install_path());
+        println!("Steam exe: {:?}", SteamScanner::find_steam_exe());
+        println!("Steam is running: {}", SteamScanner::is_running());
+
+        let games = SteamScanner::scan_installed_games();
+        println!("Steam games encontradas: {}", games.len());
+        for game in games.iter().take(5) {
+            println!("- {} ({})", game.title, game.launch_uri);
         }
     }
 }

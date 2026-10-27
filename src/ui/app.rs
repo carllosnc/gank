@@ -1,5 +1,6 @@
 use crate::models::{Game, Platform};
 use crate::scanners::epic::EpicScanner;
+use crate::scanners::steam::SteamScanner;
 use crate::scanners::scan_all_platforms;
 use eframe::egui;
 use std::sync::mpsc::{channel, Receiver, Sender};
@@ -104,7 +105,35 @@ impl KiroApp {
                 }
             }
 
-            // Direct protocol launch (for Steam or when Epic is already running)
+            // If Steam is selected but not yet running,
+            // start steam.exe in silent mode first (minimized to system tray) and dispatch the game.
+            if game.platform == Platform::Steam && !SteamScanner::is_running() {
+                if let Some(steam_exe) = SteamScanner::find_steam_exe() {
+                    let tx = self.status_tx.clone();
+                    let title = game.title.clone();
+                    let uri = game.launch_uri.clone();
+
+                    self.status_message = Some("Iniciando Steam em segundo plano...".to_string());
+
+                    std::thread::spawn(move || {
+                        let mut cmd = std::process::Command::new(&steam_exe);
+                        cmd.arg("-silent");
+                        if let Some(parent) = steam_exe.parent() {
+                            cmd.current_dir(parent);
+                        }
+                        let _ = cmd.spawn();
+
+                        // Give Steam time to initialize its background service (~2.0s)
+                        std::thread::sleep(std::time::Duration::from_millis(2000));
+
+                        let _ = tx.send(format!("Iniciando: {}", title));
+                        open_uri(&uri);
+                    });
+                    return;
+                }
+            }
+
+            // Direct protocol launch (for already running launchers)
             if open_uri(&game.launch_uri) {
                 self.status_message = Some(format!("Iniciando: {}", game.title));
             } else {

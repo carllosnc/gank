@@ -1,4 +1,5 @@
 pub mod epic;
+pub mod process;
 pub mod steam;
 
 use crate::models::Game;
