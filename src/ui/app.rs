@@ -1,22 +1,69 @@
 use crate::models::{Game, Platform};
+use crate::scanners::epic::EpicScanner;
 use crate::scanners::scan_all_platforms;
 use eframe::egui;
+use std::sync::mpsc::{channel, Receiver, Sender};
+
+#[cfg(target_os = "windows")]
+pub fn open_uri(uri: &str) -> bool {
+    use std::ffi::OsStr;
+    use std::os::windows::ffi::OsStrExt;
+
+    let wide_uri: Vec<u16> = OsStr::new(uri)
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect();
+    let wide_open: Vec<u16> = OsStr::new("open")
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect();
+
+    #[link(name = "shell32")]
+    extern "system" {
+        fn ShellExecuteW(
+            hwnd: *mut std::ffi::c_void,
+            lpOperation: *const u16,
+            lpFile: *const u16,
+            lpParameters: *const u16,
+            lpDirectory: *const u16,
+            nShowCmd: i32,
+        ) -> isize;
+    }
+
+    let ret = unsafe {
+        ShellExecuteW(
+            std::ptr::null_mut(),
+            wide_open.as_ptr(),
+            wide_uri.as_ptr(),
+            std::ptr::null(),
+            std::ptr::null(),
+            1, // SW_SHOWNORMAL
+        )
+    };
+
+    ret > 32
+}
 
 pub struct KiroApp {
     games: Vec<Game>,
     search_query: String,
     selected_platform: Option<Platform>,
     status_message: Option<String>,
+    status_tx: Sender<String>,
+    status_rx: Receiver<String>,
 }
 
 impl Default for KiroApp {
     fn default() -> Self {
+        let (status_tx, status_rx) = channel();
         let games = scan_all_platforms();
         Self {
             games,
             search_query: String::new(),
             selected_platform: None,
             status_message: None,
+            status_tx,
+            status_rx,
         }
     }
 }
@@ -29,65 +76,39 @@ impl KiroApp {
     fn launch_game(&mut self, game: &Game) {
         #[cfg(target_os = "windows")]
         {
-            // 1. Try direct executable launch first if available
-            if let Some(exe_path) = &game.executable_path {
-                if exe_path.exists() {
-                    let mut cmd = std::process::Command::new(exe_path);
-                    if let Some(parent) = exe_path.parent() {
-                        cmd.current_dir(parent);
-                    }
-                    match cmd.spawn() {
-                        Ok(_) => {
-                            self.status_message = Some(format!("Iniciado diretamente (.exe): {}", game.title));
-                            return;
+            // If Epic Games is selected but the launcher is not yet running in background,
+            // start EpicGamesLauncher in silent mode first and dispatch the game after initialization.
+            if game.platform == Platform::EpicGames && !EpicScanner::is_launcher_running() {
+                if let Some(launcher_exe) = EpicScanner::find_epic_launcher_exe() {
+                    let tx = self.status_tx.clone();
+                    let title = game.title.clone();
+                    let uri = game.launch_uri.clone();
+
+                    self.status_message = Some("Iniciando Epic Games em segundo plano...".to_string());
+
+                    std::thread::spawn(move || {
+                        let mut cmd = std::process::Command::new(&launcher_exe);
+                        cmd.arg("-silent");
+                        if let Some(parent) = launcher_exe.parent() {
+                            cmd.current_dir(parent);
                         }
-                        Err(err) => {
-                            eprintln!("Falha na execução direta: {}, tentando fallback para launcher...", err);
-                        }
-                    }
+                        let _ = cmd.spawn();
+
+                        // Give Epic launcher time to initialize its IPC listener (~2.5s)
+                        std::thread::sleep(std::time::Duration::from_millis(2500));
+
+                        let _ = tx.send(format!("Iniciando: {}", title));
+                        open_uri(&uri);
+                    });
+                    return;
                 }
             }
 
-            // 2. Fallback to ShellExecuteW with launch_uri
-            use std::ffi::OsStr;
-            use std::os::windows::ffi::OsStrExt;
-
-            let wide_uri: Vec<u16> = OsStr::new(&game.launch_uri)
-                .encode_wide()
-                .chain(std::iter::once(0))
-                .collect();
-            let wide_open: Vec<u16> = OsStr::new("open")
-                .encode_wide()
-                .chain(std::iter::once(0))
-                .collect();
-
-            #[link(name = "shell32")]
-            extern "system" {
-                fn ShellExecuteW(
-                    hwnd: *mut std::ffi::c_void,
-                    lpOperation: *const u16,
-                    lpFile: *const u16,
-                    lpParameters: *const u16,
-                    lpDirectory: *const u16,
-                    nShowCmd: i32,
-                ) -> isize;
-            }
-
-            let ret = unsafe {
-                ShellExecuteW(
-                    std::ptr::null_mut(),
-                    wide_open.as_ptr(),
-                    wide_uri.as_ptr(),
-                    std::ptr::null(),
-                    std::ptr::null(),
-                    1, // SW_SHOWNORMAL
-                )
-            };
-
-            if ret > 32 {
+            // Direct protocol launch (for Steam or when Epic is already running)
+            if open_uri(&game.launch_uri) {
                 self.status_message = Some(format!("Iniciando: {}", game.title));
             } else {
-                self.status_message = Some(format!("Erro ao iniciar (código {}): {}", ret, game.title));
+                self.status_message = Some(format!("Erro ao iniciar: {}", game.title));
             }
         }
 
@@ -101,6 +122,12 @@ impl KiroApp {
 
 impl eframe::App for KiroApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // Process asynchronous status updates
+        while let Ok(msg) = self.status_rx.try_recv() {
+            self.status_message = Some(msg);
+            ctx.request_repaint();
+        }
+
         // Top Control Panel
         egui::TopBottomPanel::top("top_panel")
             .frame(
@@ -266,14 +293,6 @@ impl eframe::App for KiroApp {
                                                 .size(15.0)
                                                 .strong(),
                                         );
-
-                                        if game.executable_path.is_some() {
-                                            ui.label(
-                                                egui::RichText::new("⚡ .exe")
-                                                    .color(egui::Color32::from_rgb(100, 210, 140))
-                                                    .small(),
-                                            );
-                                        }
 
                                         // Right side Play Button
                                         ui.with_layout(

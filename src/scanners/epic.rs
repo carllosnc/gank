@@ -31,6 +31,123 @@ struct EpicManifest {
 pub struct EpicScanner;
 
 impl EpicScanner {
+    /// Detects the full path to `EpicGamesLauncher.exe` via Windows registry or standard locations.
+    pub fn find_epic_launcher_exe() -> Option<PathBuf> {
+        #[cfg(target_os = "windows")]
+        {
+            use winreg::enums::{HKEY_CLASSES_ROOT, KEY_READ};
+            let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
+            if let Ok(key) = hkcr.open_subkey_with_flags(r"com.epicgames.launcher\shell\open\command", KEY_READ) {
+                if let Ok(cmd_str) = key.get_value::<String, _>("") {
+                    let exe_str = if let Some(first_quote) = cmd_str.find('"') {
+                        if let Some(second_quote) = cmd_str[first_quote + 1..].find('"') {
+                            &cmd_str[first_quote + 1..first_quote + 1 + second_quote]
+                        } else {
+                            &cmd_str
+                        }
+                    } else {
+                        cmd_str.split_whitespace().next().unwrap_or(&cmd_str)
+                    };
+
+                    let path = PathBuf::from(exe_str);
+                    if path.exists() {
+                        return Some(path);
+                    }
+                }
+            }
+        }
+
+        for fallback in [
+            r"C:\Program Files (x86)\Epic Games\Launcher\Portal\Binaries\Win64\EpicGamesLauncher.exe",
+            r"C:\Program Files\Epic Games\Launcher\Portal\Binaries\Win64\EpicGamesLauncher.exe",
+            r"E:\Epic Games\Launcher\Portal\Binaries\Win64\EpicGamesLauncher.exe",
+        ] {
+            let p = PathBuf::from(fallback);
+            if p.exists() {
+                return Some(p);
+            }
+        }
+
+        None
+    }
+
+    /// Checks if EpicGamesLauncher.exe is currently running in Windows.
+    pub fn is_launcher_running() -> bool {
+        #[cfg(target_os = "windows")]
+        {
+            use std::ffi::c_void;
+
+            const TH32CS_SNAPPROCESS: u32 = 0x00000002;
+            const MAX_PATH: usize = 260;
+
+            #[allow(non_snake_case)]
+            #[repr(C)]
+            struct PROCESSENTRY32W {
+                dwSize: u32,
+                cntUsage: u32,
+                th32ProcessID: u32,
+                th32DefaultHeapID: usize,
+                th32ModuleID: u32,
+                cntThreads: u32,
+                th32ParentProcessID: u32,
+                pcPriClassBase: i32,
+                dwFlags: u32,
+                szExeFile: [u16; MAX_PATH],
+            }
+
+            #[link(name = "kernel32")]
+            extern "system" {
+                fn CreateToolhelp32Snapshot(dwFlags: u32, th32ProcessID: u32) -> *mut c_void;
+                fn Process32FirstW(hSnapshot: *mut c_void, lppe: *mut PROCESSENTRY32W) -> i32;
+                fn Process32NextW(hSnapshot: *mut c_void, lppe: *mut PROCESSENTRY32W) -> i32;
+                fn CloseHandle(hObject: *mut c_void) -> i32;
+            }
+
+            let snapshot = unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) };
+            if snapshot.is_null() || snapshot == -1isize as *mut c_void {
+                return false;
+            }
+
+            let mut entry = PROCESSENTRY32W {
+                dwSize: std::mem::size_of::<PROCESSENTRY32W>() as u32,
+                cntUsage: 0,
+                th32ProcessID: 0,
+                th32DefaultHeapID: 0,
+                th32ModuleID: 0,
+                cntThreads: 0,
+                th32ParentProcessID: 0,
+                pcPriClassBase: 0,
+                dwFlags: 0,
+                szExeFile: [0; MAX_PATH],
+            };
+
+            let target = "epicgameslauncher.exe";
+            let mut found = false;
+
+            if unsafe { Process32FirstW(snapshot, &mut entry) } != 0 {
+                loop {
+                    let len = entry.szExeFile.iter().position(|&c| c == 0).unwrap_or(MAX_PATH);
+                    let name = String::from_utf16_lossy(&entry.szExeFile[..len]).to_lowercase();
+                    if name == target {
+                        found = true;
+                        break;
+                    }
+                    if unsafe { Process32NextW(snapshot, &mut entry) } == 0 {
+                        break;
+                    }
+                }
+            }
+
+            unsafe { CloseHandle(snapshot) };
+            found
+        }
+
+        #[cfg(not(target_os = "windows"))]
+        {
+            false
+        }
+    }
+
     /// Detects the manifests directory of Epic Games Launcher.
     pub fn find_manifests_dir() -> Option<PathBuf> {
         #[cfg(target_os = "windows")]
@@ -161,6 +278,9 @@ mod tests {
 
     #[test]
     fn test_scan_epic_games() {
+        println!("Epic launcher path: {:?}", EpicScanner::find_epic_launcher_exe());
+        println!("Epic is running: {}", EpicScanner::is_launcher_running());
+
         let games = EpicScanner::scan_installed_games();
         println!("Epic Games encontradas: {}", games.len());
         for game in &games {
