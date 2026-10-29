@@ -191,7 +191,7 @@ fn paint_card_bottom_scrim(
 }
 
 pub struct AnimatedCoverPlayback {
-    pub frames: Vec<egui::ColorImage>,
+    pub compressed_frames: Vec<Vec<u8>>,
     pub texture: Option<egui::TextureHandle>,
     pub current_frame_idx: usize,
     pub last_frame_time: std::time::Instant,
@@ -219,15 +219,15 @@ pub struct GankApp {
     anim_loading: std::collections::HashSet<String>,
     animated_cover_ids: std::collections::HashSet<String>,
     titlebar_themed: bool,
-    anim_tx: Sender<(String, Vec<egui::ColorImage>)>,
-    anim_rx: Receiver<(String, Vec<egui::ColorImage>)>,
+    anim_tx: Sender<(String, Vec<Vec<u8>>)>,
+    anim_rx: Receiver<(String, Vec<Vec<u8>>)>,
 }
 
 impl Default for GankApp {
     fn default() -> Self {
         let (status_tx, status_rx) = channel();
         let (cover_tx, cover_rx) = channel();
-        let (anim_tx, anim_rx) = channel::<(String, Vec<egui::ColorImage>)>();
+        let (anim_tx, anim_rx) = channel::<(String, Vec<Vec<u8>>)>();
         let (tex_load_tx, tex_load_rx) = channel::<(String, egui::ColorImage)>();
 
         let games = scan_all_platforms();
@@ -561,11 +561,11 @@ impl eframe::App for GankApp {
                 self.animated_covers.insert(
                     id,
                     AnimatedCoverPlayback {
-                        frames,
+                        compressed_frames: frames,
                         texture: None,
                         current_frame_idx: 0,
                         last_frame_time: std::time::Instant::now(),
-                        frame_duration: std::time::Duration::from_millis(1000 / 24),
+                        frame_duration: std::time::Duration::from_millis(55),
                     },
                 );
             }
@@ -587,6 +587,7 @@ impl eframe::App for GankApp {
             self.animated_covers.remove(&id);
             self.anim_loading.remove(&id);
             self.cover_textures.remove(&id);
+            self.animated_cover_ids = crate::artwork::get_all_animated_cover_ids();
             if let Some(game) = self.games.iter_mut().find(|g| g.id == id) {
                 game.set_cover_path(Some(path.clone()));
             }
@@ -988,19 +989,39 @@ impl eframe::App for GankApp {
                                                             if let Some(playback) = self.animated_covers.get_mut(&game.id) {
                                                                 let now = std::time::Instant::now();
                                                                 if now.duration_since(playback.last_frame_time) >= playback.frame_duration {
-                                                                    playback.current_frame_idx = (playback.current_frame_idx + 1) % playback.frames.len();
-                                                                    playback.last_frame_time = now;
-                                                                    if let Some(tex) = &mut playback.texture {
-                                                                        tex.set(playback.frames[playback.current_frame_idx].clone(), egui::TextureOptions::LINEAR);
+                                                                    if !playback.compressed_frames.is_empty() {
+                                                                        playback.current_frame_idx = (playback.current_frame_idx + 1) % playback.compressed_frames.len();
+                                                                        playback.last_frame_time = now;
+                                                                        if let Ok(img) = image::load_from_memory(&playback.compressed_frames[playback.current_frame_idx]) {
+                                                                            let rgba = img.to_rgba8();
+                                                                            let size = [rgba.width() as usize, rgba.height() as usize];
+                                                                            let pixels = rgba.into_raw();
+                                                                            let color_img = egui::ColorImage::from_rgba_unmultiplied(size, &pixels);
+                                                                            if let Some(tex) = &mut playback.texture {
+                                                                                tex.set(color_img, egui::TextureOptions::LINEAR);
+                                                                            } else {
+                                                                                playback.texture = Some(ui.ctx().load_texture(
+                                                                                    format!("anim_tex_{}", game.id),
+                                                                                    color_img,
+                                                                                    egui::TextureOptions::LINEAR,
+                                                                                ));
+                                                                            }
+                                                                        }
                                                                     }
                                                                 }
 
-                                                                if playback.texture.is_none() {
-                                                                    playback.texture = Some(ui.ctx().load_texture(
-                                                                        format!("anim_tex_{}", game.id),
-                                                                        playback.frames[playback.current_frame_idx].clone(),
-                                                                        egui::TextureOptions::LINEAR,
-                                                                    ));
+                                                                if playback.texture.is_none() && !playback.compressed_frames.is_empty() {
+                                                                    if let Ok(img) = image::load_from_memory(&playback.compressed_frames[playback.current_frame_idx]) {
+                                                                        let rgba = img.to_rgba8();
+                                                                        let size = [rgba.width() as usize, rgba.height() as usize];
+                                                                        let pixels = rgba.into_raw();
+                                                                        let color_img = egui::ColorImage::from_rgba_unmultiplied(size, &pixels);
+                                                                        playback.texture = Some(ui.ctx().load_texture(
+                                                                            format!("anim_tex_{}", game.id),
+                                                                            color_img,
+                                                                            egui::TextureOptions::LINEAR,
+                                                                        ));
+                                                                    }
                                                                 }
 
                                                                 if let Some(tex) = &playback.texture {
@@ -1017,7 +1038,7 @@ impl eframe::App for GankApp {
                                                                 let game_id = game.id.clone();
                                                                 let tx = self.anim_tx.clone();
                                                                 std::thread::spawn(move || {
-                                                                    let frames = crate::artwork::load_animated_cover_frames(&game_id);
+                                                                    let frames = crate::artwork::load_animated_cover_compressed_frames(&game_id);
                                                                     let _ = tx.send((game_id, frames));
                                                                 });
                                                             }
@@ -1170,7 +1191,7 @@ impl eframe::App for GankApp {
                                 }
 
                                 if any_anim_playing {
-                                    ui.ctx().request_repaint_after(std::time::Duration::from_millis(41));
+                                    ui.ctx().request_repaint_after(std::time::Duration::from_millis(50));
                                 }
                             });
                     });
