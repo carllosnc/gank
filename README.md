@@ -1,8 +1,8 @@
-# Kiro 🎮
+# Gank 🎮
 
 Um agregador e inicializador rápido de atalhos de jogos para desktop, desenvolvido em **Rust** com foco estrito em **desempenho**, **baixo consumo de recursos** e **inicialização instantânea**.
 
-O objetivo do Kiro é centralizar todos os seus jogos instalados (Steam, Epic Games, GOG, Xbox, etc.) em uma interface única, rápida e reativa, eliminando a necessidade de manter múltiplos inicializadores abertos consumindo memória em segundo plano.
+O objetivo do Gank é centralizar todos os seus jogos instalados (Steam, Epic Games, GOG, Xbox, etc.) em uma interface única, rápida e reativa, eliminando a necessidade de manter múltiplos inicializadores abertos consumindo memória em segundo plano.
 
 ---
 
@@ -26,20 +26,29 @@ O objetivo do Kiro é centralizar todos os seus jogos instalados (Steam, Epic Ga
 ## 📂 Estrutura do Projeto
 
 ```text
-kiro/
+gank/
+├── assets/              # Fontes Inter e ícones oficiais de alta resolução
 ├── src/
-│   ├── models.rs        # Estruturas de dados (Game, Platform, LaunchCommand)
-│   ├── scanners/        # Módulos de detecção de jogos locais
-│   │   ├── mod.rs
-│   │   └── steam.rs     # Scanner para instalações da Steam
-│   ├── ui/              # Componentes de interface e estado do egui
-│   │   ├── mod.rs
-│   │   └── app.rs
-│   └── main.rs          # Ponto de entrada e configuração do eframe
+│   ├── main.rs          # Ponto de entrada e configuração do pipeline WGPU
+│   ├── models.rs        # Estruturas centrais de dados (Game, Platform)
+│   ├── config.rs        # Configurações do app e chaves de API persistidas
+│   ├── artwork.rs       # Cache de capas locais e processamento ffmpeg
+│   ├── metadata/        # Enriquecimento assíncrono (RAWG, Steam Store, SteamGridDB)
+│   ├── scanners/        # Detectores para Steam, Epic, EA, Ubisoft, Battle.net, Emuladores
+│   └── ui/              # Componentes de interface, shaders WGPU, design system e telas
+├── AGENTS.md            # Guia de arquitetura e regras para agentes de IA
+├── ROADMAP.md           # Roadmap detalhado para a versão v0.1.0 e marcos futuros
 ├── Cargo.toml
 ├── LICENSE
 └── README.md
 ```
+
+---
+
+## 🗺️ Roadmap & Diretrizes
+
+- Para consultar o status das funcionalidades e as metas de lançamento, veja o [`ROADMAP.md`](ROADMAP.md).
+- Para diretrizes de desenvolvimento, regras de performance e padrões de arquitetura, consulte o [`AGENTS.md`](AGENTS.md).
 
 ---
 
@@ -58,7 +67,7 @@ cargo run
 cargo build --release
 ```
 
-O binário final compilado estará disponível em `target/release/kiro.exe`.
+O binário final compilado estará disponível em `target/release/gank.exe`.
 
 ---
 
