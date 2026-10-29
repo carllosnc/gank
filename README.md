@@ -5,37 +5,23 @@
 # Gank
 
 <p>
-  <strong>Fast, lightweight, and modern desktop game shortcut hub and launcher written in Rust</strong><br>
-  Built with <code>egui</code> and <code>wgpu</code> with zero allocations per frame and instant sub-100ms startup.
+  <strong>Ultra-fast, minimalist desktop game aggregator and launcher written in Rust</strong><br>
+  Sub-100ms startup, zero allocations per frame, and ~32 MB idle memory footprint.
 </p>
 
-<p>
-  <a href="https://github.com/carllosnc/gank/actions/workflows/ci.yml">
-    <img src="https://github.com/carllosnc/gank/actions/workflows/ci.yml/badge.svg" alt="CI Status" />
-  </a>
-  <a href="https://github.com/carllosnc/gank/releases">
-    <img src="https://img.shields.io/github/v/release/carllosnc/gank?color=3b82f6&logo=github" alt="Release" />
-  </a>
-  <a href="https://www.rust-lang.org/">
-    <img src="https://img.shields.io/badge/Language-Rust-orange.svg?logo=rust" alt="Language: Rust" />
-  </a>
-  <a href="https://github.com/carllosnc/gank">
-    <img src="https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078d4?logo=windows" alt="Platform: Windows" />
-  </a>
-  <a href="LICENSE">
-    <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" />
-  </a>
-</p>
+[![CI](https://github.com/carllosnc/gank/actions/workflows/ci.yml/badge.svg)](https://github.com/carllosnc/gank/actions/workflows/ci.yml)
+[![Platform](https://img.shields.io/badge/platform-Windows-0078d4?logo=windows)](https://github.com/carllosnc/gank)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-<br>
+<br><br>
 
 <img src="assets/preview.jpg" alt="Gank Game Hub Interface" width="100%" />
 
 </div>
 
-A fast, lightweight, and modern desktop game shortcut hub and launcher built in **Rust** with an uncompromising focus on **performance**, **minimal resource footprint**, and **instant startup**.
+<br>
 
-The goal of Gank is to unify your fragmented game libraries (Steam, Epic Games, EA App, Ubisoft Connect, Battle.net, GOG, Xbox, and Emulators) into a single, cohesive, and cinematic interface without the overhead of keeping multiple sluggish store launchers running in the background.
+Gank unifies fragmented game libraries (Steam, Epic Games, EA App, Ubisoft Connect, Battle.net, and Emulators) into a single cinematic interface without the overhead of multiple store clients running in the background.
 
 ---
 
