@@ -13,13 +13,9 @@
 [![Platform](https://img.shields.io/badge/platform-Windows-0078d4?logo=windows)](https://github.com/carllosnc/gank)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-<br>
-
 <img src="assets/preview.jpg" alt="Gank Game Hub Interface" width="100%" />
 
 </div>
-
-<br>
 
 Gank unifies fragmented game libraries (Steam, Epic Games, EA App, Ubisoft Connect, Battle.net, and Emulators) into a single cinematic interface without the overhead of multiple store clients running in the background.
 
