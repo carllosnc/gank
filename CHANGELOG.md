@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows Shell `SetCurrentProcessExplicitAppUserModelID` registration for immediate taskbar branding and grouping.
 - Performance benchmark script (`tests/benchmark.ps1`) for tracking startup time, CPU, and memory footprints.
 - Automated packaging script (`scripts/package.ps1`) for generating portable release bundles with SHA256 checksums.
+- Inno Setup installer (`scripts/installer.iss` and `scripts/build-installer.ps1`) with custom branded wizard sidebars.
 - GitHub Actions CI/CD workflows for automated validation and GitHub Releases publishing.
 
 ### Performance

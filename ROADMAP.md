@@ -44,8 +44,12 @@ The goal of version **v0.1.0** is to deliver a high-performance, visually immers
 - [x] **Windows Application Resource Packaging:**
   - Embedded official `.ico` icon and Windows resource metadata into the `.exe` via `build.rs` / `winres`.
   - Windows Shell `SetCurrentProcessExplicitAppUserModelID` registration for immediate taskbar identity.
-- [x] **Remote Repository:**
+- [x] **Distribution Packaging & Installer:**
+  - Automated portable ZIP bundle generation with SHA256 checksums (`scripts/package.ps1`).
+  - Inno Setup installer (`scripts/installer.iss` and `scripts/build-installer.ps1`) with custom branding wizard sidebars.
+- [x] **Remote Repository & CI/CD:**
   - Published to GitHub: [https://github.com/carllosnc/gank](https://github.com/carllosnc/gank).
+  - Automated GitHub Actions release pipeline compiling and publishing ZIP and installer assets.
 
 ---
 

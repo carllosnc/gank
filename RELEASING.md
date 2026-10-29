@@ -94,8 +94,14 @@ powershell -ExecutionPolicy Bypass -File ./scripts/package.ps1
 ```
 *Output:* `dist/gank-vX.Y.Z-windows-x86_64.zip` and `.sha256`.
 
-### 6.2 Manual Smoke Test Checklist
-- [ ] Application launches cleanly from the unpacked portable directory.
+### 6.2 Setup Installer (.exe)
+```powershell
+powershell -ExecutionPolicy Bypass -File ./scripts/build-installer.ps1
+```
+*Output:* `dist/gank-vX.Y.Z-windows-x86_64-setup.exe` and `.sha256`.
+
+### 6.3 Manual Smoke Test Checklist
+- [ ] Application launches cleanly from the unpacked portable directory or installer.
 - [ ] Official Gank icon appears on the executable and Windows Taskbar.
 - [ ] Shaders and library cards render at 60 FPS with VSync.
 - [ ] Memory footprint stabilizes at ~32 MB after initial startup.
@@ -125,8 +131,9 @@ git push origin v0.1.0
 Pushing the tag triggers `.github/workflows/release.yml`:
 
 1. **Quality Gate (`validate`)**: Runs `cargo fmt`, `cargo clippy`, and `cargo test` on Windows.
-2. **Windows Matrix (`release-windows`)**: Builds optimized release binaries with LTO, bundles resources, compresses the portable `.zip`, and uploads release assets.
+2. **Windows Matrix (`release-windows`)**: Builds optimized release binaries with LTO, bundles resources, generates portable `.zip` and Inno Setup installer `.exe`, and uploads release assets.
 3. **Release Verification**:
    Navigate to `https://github.com/carllosnc/gank/releases/tag/vX.Y.Z` and verify assets:
    - `gank-vX.Y.Z-windows-x86_64.zip` + `.sha256`
+   - `gank-vX.Y.Z-windows-x86_64-setup.exe` + `.sha256`
 4. **Publish**: The release notes will be automatically populated, or you can paste the relevant entry from `CHANGELOG.md`.
