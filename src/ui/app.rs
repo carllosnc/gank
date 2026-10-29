@@ -214,6 +214,7 @@ pub struct GankApp {
     cover_textures: std::collections::HashMap<String, egui::TextureHandle>,
     tex_load_tx: Sender<(String, egui::ColorImage)>,
     tex_load_rx: Receiver<(String, egui::ColorImage)>,
+    logo_texture: Option<egui::TextureHandle>,
     animated_covers: std::collections::HashMap<String, AnimatedCoverPlayback>,
     anim_loading: std::collections::HashSet<String>,
     animated_cover_ids: std::collections::HashSet<String>,
@@ -267,6 +268,7 @@ impl Default for GankApp {
             cover_textures: std::collections::HashMap::new(),
             tex_load_tx,
             tex_load_rx,
+            logo_texture: None,
             animated_covers: std::collections::HashMap::new(),
             anim_loading: std::collections::HashSet::new(),
             animated_cover_ids: crate::artwork::get_all_animated_cover_ids(),
@@ -657,8 +659,20 @@ impl eframe::App for GankApp {
                     bar_rect.max,
                 );
 
-                // 2. Left Brand Width & Rect
-                let brand_w = 88.0;
+                // Ensure top logo texture is loaded
+                if self.logo_texture.is_none() {
+                    let logo_bytes = include_bytes!("../../assets/logo.png");
+                    if let Ok(img) = image::load_from_memory(logo_bytes) {
+                        let rgba = img.to_rgba8();
+                        let size = [rgba.width() as usize, rgba.height() as usize];
+                        let pixels = rgba.into_raw();
+                        let color_image = egui::ColorImage::from_rgba_unmultiplied(size, &pixels);
+                        self.logo_texture = Some(ctx.load_texture("top_logo", color_image, egui::TextureOptions::LINEAR));
+                    }
+                }
+
+                // 2. Left Brand Width & Rect (official Gank wordmark logo)
+                let brand_w = 68.0;
                 let left_rect = egui::Rect::from_min_max(
                     bar_rect.min,
                     egui::pos2(bar_rect.min.x + brand_w, bar_rect.max.y),
@@ -707,20 +721,27 @@ impl eframe::App for GankApp {
                     self.status_message = Some("Biblioteca atualizada!".to_string());
                 }
 
-                // RENDER LEFT BRAND (Fixed left anchor)
+                // RENDER LEFT BRAND (Fixed left anchor: small official Gank logo fitting top bar)
                 let mut left_ui = ui.child_ui(left_rect, egui::Layout::left_to_right(egui::Align::Center));
-                left_ui.spacing_mut().item_spacing = egui::vec2(10.0, 0.0);
-                left_ui.label(
-                    egui::RichText::new(egui_phosphor::regular::LIGHTNING)
-                        .color(crate::ui::theme::colors::BLUE_400)
-                        .size(19.0),
-                );
-                left_ui.label(
-                    egui::RichText::new("Gank")
-                        .color(egui::Color32::WHITE)
-                        .strong()
-                        .size(15.5),
-                );
+                if let Some(tex) = &self.logo_texture {
+                    let (logo_rect, resp) = left_ui.allocate_exact_size(egui::vec2(65.0, 18.0), egui::Sense::click());
+                    let logo_img = egui::Image::new(tex).fit_to_exact_size(egui::vec2(65.0, 18.0));
+                    logo_img.paint_at(&left_ui, logo_rect);
+                    if resp.hovered() {
+                        left_ui.output_mut(|o| o.cursor_icon = egui::CursorIcon::PointingHand);
+                    }
+                    if resp.clicked() {
+                        self.selected_platform = None;
+                        self.reveal_start_time = Some(std::time::Instant::now());
+                    }
+                } else {
+                    left_ui.label(
+                        egui::RichText::new("Gank")
+                            .color(egui::Color32::WHITE)
+                            .strong()
+                            .size(15.5),
+                    );
+                }
 
                 // RENDER MIDDLE FILTERS (Strictly clipped & scrollable inside middle_rect)
                 let mut middle_ui = ui.child_ui(middle_rect, egui::Layout::left_to_right(egui::Align::Center));

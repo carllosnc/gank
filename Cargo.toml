@@ -19,6 +19,9 @@ winreg = "0.52"
 ureq = { version = "2.10", features = ["json"] }
 egui-phosphor = "0.5"
 
+[build-dependencies]
+winres = "0.1"
+
 [profile.release]
 opt-level = 3
 lto = true

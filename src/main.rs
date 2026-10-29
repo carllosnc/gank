@@ -9,6 +9,21 @@ pub mod metadata;
 
 use ui::GankApp;
 
+fn load_app_icon() -> Option<eframe::egui::IconData> {
+    let png_bytes = include_bytes!("../assets/icon.png");
+    if let Ok(img) = image::load_from_memory(png_bytes) {
+        let rgba = img.to_rgba8();
+        let (width, height) = (rgba.width(), rgba.height());
+        Some(eframe::egui::IconData {
+            rgba: rgba.into_raw(),
+            width,
+            height,
+        })
+    } else {
+        None
+    }
+}
+
 fn main() -> eframe::Result<()> {
     let mut wgpu_options = eframe::egui_wgpu::WgpuConfiguration::default();
     wgpu_options.present_mode = eframe::wgpu::PresentMode::Fifo;
@@ -19,11 +34,17 @@ fn main() -> eframe::Result<()> {
         eframe::egui_wgpu::SurfaceErrorAction::RecreateSurface
     });
 
+    let mut viewport = eframe::egui::ViewportBuilder::default()
+        .with_inner_size([980.0, 680.0])
+        .with_min_inner_size([540.0, 420.0])
+        .with_title("Gank - Game Hub");
+
+    if let Some(icon) = load_app_icon() {
+        viewport = viewport.with_icon(icon);
+    }
+
     let native_options = eframe::NativeOptions {
-        viewport: eframe::egui::ViewportBuilder::default()
-            .with_inner_size([980.0, 680.0])
-            .with_min_inner_size([540.0, 420.0])
-            .with_title("Gank - Game Hub"),
+        viewport,
         renderer: eframe::Renderer::Wgpu,
         wgpu_options,
         ..Default::default()

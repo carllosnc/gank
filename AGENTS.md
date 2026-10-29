@@ -99,6 +99,5 @@ gank/
 - [x] Suporte a capas personalizadas com drag-and-drop e colagem de URL (Ctrl+V).
 - [x] Capas animadas com conversão de vídeo loop (ffmpeg) para frames 2:3.
 - [x] Otimizações de Zero-Allocation e Throttling de foco com consumo <0.4% CPU em idle.
-### Metas Finais Restantes para a Entrega da v0.1.0:
-1. **Empacotamento e Ícone do Executável Windows:** Configurar `.ico` do Gank nos recursos do executável (`build.rs` / `winres`).
-2. **Configuração do Repositório Remoto:** Conectar ao GitHub e criar pipeline de CI (`cargo test` + `cargo build --release`).
+- [x] Empacotamento e Ícone do Executável Windows (.ico nos recursos do executável via build.rs/winres e janela via with_icon).
+- [x] Configuração do Repositório Remoto no GitHub (https://github.com/carllosnc/gank).
