@@ -40,6 +40,8 @@ gank/
 │   └── ui/              # Egui components, WGSL shaders, design system and views
 ├── AGENTS.md            # AI agent guidelines, architecture rules and governance
 ├── ROADMAP.md           # Milestone roadmap for v0.1.0 and beyond
+├── RELEASING.md         # Release procedure, quality gates, and publishing guide
+├── CHANGELOG.md         # Documented release history and version notes
 ├── Cargo.toml
 ├── LICENSE
 └── README.md
@@ -50,6 +52,8 @@ gank/
 ## 🗺️ Roadmap & Guidelines
 
 - For release status and planned milestones, see [`ROADMAP.md`](ROADMAP.md).
+- For release procedures and packaging instructions, see [`RELEASING.md`](RELEASING.md).
+- For version history and change logs, see [`CHANGELOG.md`](CHANGELOG.md).
 - For coding standards, anti-regression performance rules, and architecture governance, see [`AGENTS.md`](AGENTS.md).
 
 ---
