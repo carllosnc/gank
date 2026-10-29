@@ -13,7 +13,7 @@
 [![Platform](https://img.shields.io/badge/platform-Windows-0078d4?logo=windows)](https://github.com/carllosnc/gank)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-<br><br>
+<br>
 
 <img src="assets/preview.jpg" alt="Gank Game Hub Interface" width="100%" />
 
