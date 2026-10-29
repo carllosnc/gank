@@ -81,8 +81,6 @@ cargo build --release
 
 The optimized production binary will be generated at `target/release/Gank.exe`.
 
----
-
 ## License
 
 Distributed under the MIT License. See [`LICENSE`](LICENSE) for details.
