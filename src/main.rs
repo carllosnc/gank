@@ -24,7 +24,32 @@ fn load_app_icon() -> Option<eframe::egui::IconData> {
     }
 }
 
+#[cfg(windows)]
+fn init_windows_app_id() {
+    use std::ffi::OsStr;
+    use std::os::windows::ffi::OsStrExt;
+
+    #[link(name = "shell32")]
+    extern "system" {
+        fn SetCurrentProcessExplicitAppUserModelID(app_id: *const u16) -> i32;
+    }
+
+    let app_id: Vec<u16> = OsStr::new("Gank.GameHub.Desktop")
+        .encode_wide()
+        .chain(Some(0))
+        .collect();
+
+    unsafe {
+        let _ = SetCurrentProcessExplicitAppUserModelID(app_id.as_ptr());
+    }
+}
+
+
+
 fn main() -> eframe::Result<()> {
+    #[cfg(windows)]
+    init_windows_app_id();
+
     let mut wgpu_options = eframe::egui_wgpu::WgpuConfiguration::default();
     wgpu_options.present_mode = eframe::wgpu::PresentMode::Fifo;
     wgpu_options.power_preference = eframe::wgpu::PowerPreference::LowPower;
