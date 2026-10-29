@@ -1,6 +1,15 @@
+<div align="center">
+
+<img src="assets/icon.png" alt="Gank Logo" width="80" height="80" />
+
 # Gank
 
-<p align="center">
+<p>
+  <strong>Fast, lightweight, and modern desktop game shortcut hub and launcher written in Rust</strong><br>
+  Built with <code>egui</code> and <code>wgpu</code> with zero allocations per frame and instant sub-100ms startup.
+</p>
+
+<p>
   <a href="https://github.com/carllosnc/gank/actions/workflows/ci.yml">
     <img src="https://github.com/carllosnc/gank/actions/workflows/ci.yml/badge.svg" alt="CI Status" />
   </a>
@@ -18,9 +27,11 @@
   </a>
 </p>
 
-<p align="center">
-  <img src="assets/preview.jpg" alt="Gank Game Hub Interface" width="100%" />
-</p>
+<br>
+
+<img src="assets/preview.jpg" alt="Gank Game Hub Interface" width="100%" />
+
+</div>
 
 A fast, lightweight, and modern desktop game shortcut hub and launcher built in **Rust** with an uncompromising focus on **performance**, **minimal resource footprint**, and **instant startup**.
 
