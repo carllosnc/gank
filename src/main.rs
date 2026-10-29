@@ -4,25 +4,37 @@ mod models;
 mod scanners;
 mod ui;
 pub mod artwork;
+pub mod config;
+pub mod metadata;
 
-use ui::KiroApp;
+use ui::GankApp;
 
 fn main() -> eframe::Result<()> {
+    let mut wgpu_options = eframe::egui_wgpu::WgpuConfiguration::default();
+    wgpu_options.present_mode = eframe::wgpu::PresentMode::Fifo;
+    wgpu_options.power_preference = eframe::wgpu::PowerPreference::LowPower;
+    wgpu_options.supported_backends = eframe::wgpu::Backends::DX12 | eframe::wgpu::Backends::VULKAN;
+    wgpu_options.on_surface_error = std::sync::Arc::new(|err| {
+        eprintln!("Wgpu surface error: {:?}", err);
+        eframe::egui_wgpu::SurfaceErrorAction::RecreateSurface
+    });
+
     let native_options = eframe::NativeOptions {
         viewport: eframe::egui::ViewportBuilder::default()
             .with_inner_size([980.0, 680.0])
             .with_min_inner_size([540.0, 420.0])
-            .with_title("Kiro - Game Hub"),
+            .with_title("Gank - Game Hub"),
         renderer: eframe::Renderer::Wgpu,
+        wgpu_options,
         ..Default::default()
     };
 
     eframe::run_native(
-        "Kiro - Game Hub",
+        "Gank - Game Hub",
         native_options,
         Box::new(|cc| {
             egui_extras::install_image_loaders(&cc.egui_ctx);
-            Box::new(KiroApp::new(cc))
+            Box::new(GankApp::new(cc))
         }),
     )
 }
