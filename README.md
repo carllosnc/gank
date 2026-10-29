@@ -19,16 +19,12 @@
 
 Gank unifies fragmented game libraries (Steam, Epic Games, EA App, Ubisoft Connect, Battle.net, and Emulators) into a single cinematic interface without the overhead of multiple store clients running in the background.
 
----
-
 ## Performance Principles
 
 - **Zero Overhead at Idle**: Reactive user interface built with `egui` and rendered with `wgpu`. CPU usage drops below 0.4% when idle, and idle RAM stabilizes around ~30–40 MB with `mimalloc` and native working set trimming.
 - **Lightweight Game Scanners**: Direct file system and registry manifest scanning (no slow network queries or heavyweight API initialization on startup).
 - **Sub-100ms Startup**: Native compiled executable launching in under 90 milliseconds.
 - **Direct Launching**: Instant game execution through native protocol URIs or direct executables with automatic background launcher bootstrapping.
-
----
 
 ## Tech Stack
 
@@ -37,8 +33,6 @@ Gank unifies fragmented game libraries (Steam, Epic Games, EA App, Ubisoft Conne
 - **Memory Allocator**: [mimalloc](https://github.com/microsoft/mimalloc) (zero fragmentation, high throughput)
 - **Platform Integrations**: Windows Registry (`winreg`), Win32 APIs, process utilities
 - **Shaders**: Real-time WGSL procedural cosmic dust and organic mesh gradient
-
----
 
 ## Project Structure
 
@@ -62,16 +56,12 @@ gank/
 └── README.md
 ```
 
----
-
 ## Roadmap & Guidelines
 
 - For release status and planned milestones, see [`ROADMAP.md`](ROADMAP.md).
 - For release procedures and packaging instructions, see [`RELEASING.md`](RELEASING.md).
 - For version history and change logs, see [`CHANGELOG.md`](CHANGELOG.md).
 - For coding standards, anti-regression performance rules, and architecture governance, see [`AGENTS.md`](AGENTS.md).
-
----
 
 ## Getting Started
 
