@@ -4,7 +4,7 @@ This document defines the architecture, coding standards, design rules, and road
 
 ---
 
-## 🎮 Project Overview
+## Project Overview
 
 **Gank** is an ultra-fast, minimalist, and elegant desktop game aggregator and launcher developed in **Rust**, utilizing **egui** and **wgpu**.
 
@@ -13,7 +13,7 @@ This document defines the architecture, coding standards, design rules, and road
 
 ---
 
-## 🏛️ Architecture and Directory Structure
+## Architecture and Directory Structure
 
 ```text
 gank/
@@ -54,7 +54,7 @@ gank/
 
 ---
 
-## ⚡ Performance Rules of Thumb (Anti-Regression)
+## Performance Rules of Thumb (Anti-Regression)
 
 1. **Zero-Allocation in the Main Render Loop (`update`):**
    - **Never** clone collections of `Game` or allocate dynamic `String`s every frame (16ms).
@@ -75,7 +75,7 @@ gank/
 
 ---
 
-## 🎨 Design System and Visual Guidelines
+## Design System and Visual Guidelines
 
 - **Color Palette:**
   - Base: Midnight Velvet dark (`#080b12` to `#020408`) via native WGPU Mesh Gradient.
@@ -91,7 +91,7 @@ gank/
 
 ---
 
-## 🗺️ Release Roadmap: Version v0.1.0
+## Release Roadmap: Version v0.1.0
 
 ### Status (100% Completed):
 - [x] Scanners for 6 platforms (Steam, Epic, Ubisoft, EA, Battle.net, Emulators).

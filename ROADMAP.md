@@ -4,13 +4,13 @@ This document outlines the development roadmap for **Gank**, detailing the miles
 
 ---
 
-## 🚀 Version v0.1.0 — "Genesis Release" (Focus: Stability & Core Capabilities)
+## Version v0.1.0 — "Genesis Release" (Focus: Stability & Core Capabilities)
 
 The goal of version **v0.1.0** is to deliver a high-performance, visually immersive game aggregator and launcher ready for everyday desktop use on Windows.
 
-### 📋 Delivery Checklist
+### Delivery Checklist
 
-#### 1. Core & Scanners (Completed ✅)
+#### 1. Core & Scanners (Completed)
 - [x] **Steam** game detection (direct parsing of `.acf` manifests and additional `libraryfolders.vdf`).
 - [x] **Epic Games Store** detection (parsing of local `.item` manifests).
 - [x] **Ubisoft Connect** detection (Windows registry and game manifests).
@@ -20,7 +20,7 @@ The goal of version **v0.1.0** is to deliver a high-performance, visually immers
 - [x] Silent background launcher auto-bootstrapping (Steam, Epic, EA, Ubisoft).
 - [x] Game installation disk size resolution and human-readable formatting (GB/MB).
 
-#### 2. User Interface & Experience (Completed ✅)
+#### 2. User Interface & Experience (Completed)
 - [x] Dynamic, responsive grid layout with official 2:3 vertical box art aspect ratio.
 - [x] Native WGPU background with real-time liquid mesh gradient and procedural cosmic dust.
 - [x] Smooth staggered cascade animation when revealing library cards.
@@ -30,7 +30,7 @@ The goal of version **v0.1.0** is to deliver a high-performance, visually immers
 - [x] Animated covers with video loop conversion (ffmpeg) and streaming playback.
 - [x] Unified Design System with centralized tokens (Tailwind Blue, Inter Font, Phosphor Icons).
 
-#### 3. Performance & Resource Efficiency (Completed ✅)
+#### 3. Performance & Resource Efficiency (Completed)
 - [x] Idle CPU usage < 0.4% at 60 FPS with VSync (`Fifo`).
 - [x] Working set memory footprint reduced to ~32 MB via `mimalloc` and dynamic memory trimming.
 - [x] *Zero-Allocation* rendering loop (slice filtering via borrowed references).
@@ -40,7 +40,7 @@ The goal of version **v0.1.0** is to deliver a high-performance, visually immers
 - [x] Persistent cover and metadata cache in local JSON and JPEGs.
 - [x] Automated unit test suite (14 passing tests).
 
-#### 4. Packaging & Release Infrastructure (Completed ✅)
+#### 4. Packaging & Release Infrastructure (Completed)
 - [x] **Windows Application Resource Packaging:**
   - Embedded official `.ico` icon and Windows resource metadata into the `.exe` via `build.rs` / `winres`.
   - Windows Shell `SetCurrentProcessExplicitAppUserModelID` registration for immediate taskbar identity.
@@ -49,7 +49,7 @@ The goal of version **v0.1.0** is to deliver a high-performance, visually immers
 
 ---
 
-## 🔮 Future Releases
+## Future Releases
 
 ### Version v0.2.0 — "Deep Integration"
 - **GOG Galaxy & Xbox Game Pass (PC) Support:**

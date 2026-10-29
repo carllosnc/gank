@@ -1,4 +1,4 @@
-# Gank 🎮
+# Gank
 
 <p align="center">
   <a href="https://github.com/carllosnc/gank/actions/workflows/ci.yml">
@@ -28,7 +28,7 @@ The goal of Gank is to unify your fragmented game libraries (Steam, Epic Games, 
 
 ---
 
-## ⚡ Performance Principles
+## Performance Principles
 
 - **Zero Overhead at Idle**: Reactive user interface built with `egui` and rendered with `wgpu`. CPU usage drops below 0.4% when idle, and idle RAM stabilizes around ~30–40 MB with `mimalloc` and native working set trimming.
 - **Lightweight Game Scanners**: Direct file system and registry manifest scanning (no slow network queries or heavyweight API initialization on startup).
@@ -37,7 +37,7 @@ The goal of Gank is to unify your fragmented game libraries (Steam, Epic Games, 
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Language**: [Rust](https://www.rust-lang.org/) (2021 Edition)
 - **GUI & Graphics**: [egui](https://github.com/emilk/egui) / [eframe](https://github.com/emilk/egui/tree/master/crates/eframe) with [wgpu](https://wgpu.rs/) rendering backend
@@ -47,7 +47,7 @@ The goal of Gank is to unify your fragmented game libraries (Steam, Epic Games, 
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```text
 gank/
@@ -71,7 +71,7 @@ gank/
 
 ---
 
-## 🗺️ Roadmap & Guidelines
+## Roadmap & Guidelines
 
 - For release status and planned milestones, see [`ROADMAP.md`](ROADMAP.md).
 - For release procedures and packaging instructions, see [`RELEASING.md`](RELEASING.md).
@@ -80,7 +80,7 @@ gank/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - [Rust & Cargo](https://rustup.rs/) (stable toolchain)
@@ -100,6 +100,6 @@ The optimized production binary will be generated at `target/release/Gank.exe`.
 
 ---
 
-## 📄 License
+## License
 
 Distributed under the MIT License. See [`LICENSE`](LICENSE) for details.
