@@ -49,7 +49,7 @@ pub fn filter_pill(
         };
 
         let stroke = if selected {
-            Stroke::new(1.0_f32, colors::BLUE_500)
+            Stroke::NONE
         } else if is_hovered {
             Stroke::new(1.0_f32, colors::BORDER_SUBTLE)
         } else {
@@ -137,7 +137,7 @@ pub fn filter_pill_image(
         };
 
         let stroke = if selected {
-            Stroke::new(1.0_f32, colors::BLUE_500)
+            Stroke::NONE
         } else if is_hovered {
             Stroke::new(1.0_f32, colors::BORDER_SUBTLE)
         } else {
