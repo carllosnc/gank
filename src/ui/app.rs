@@ -950,11 +950,6 @@ impl eframe::App for GankApp {
                                                             ui.ctx().request_repaint();
                                                         }
 
-                                                        // Change cursor to pointing hand on card hover
-                                                        if is_pointer_in_card {
-                                                            ui.output_mut(|o| o.cursor_icon = egui::CursorIcon::PointingHand);
-                                                        }
-
                                                         // 1. Draw solid poster base surface
                                                         let card_bg = egui::Color32::from_rgba_unmultiplied(20, 23, 30, alpha_u8);
                                                         ui.painter().rect_filled(
@@ -1139,17 +1134,6 @@ impl eframe::App for GankApp {
                                                                     }
                                                                 });
                                                             }
-
-                                                            // Clicking card background directly launches the game
-                                                            if is_pointer_in_card
-                                                                && ui.input(|i| i.pointer.primary_clicked())
-                                                                && !play_resp.hovered()
-                                                                && !cover_resp.hovered()
-                                                            {
-                                                                game_to_launch = Some((*game).clone());
-                                                            }
-                                                        } else if is_pointer_in_card && ui.input(|i| i.pointer.primary_clicked()) {
-                                                            game_to_launch = Some((*game).clone());
                                                         }
                                                     });
                                                 });
