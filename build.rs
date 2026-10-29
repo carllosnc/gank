@@ -4,6 +4,10 @@ fn main() {
     res.set_icon("assets/icon.ico");
     res.set("ProductName", "Gank");
     res.set("FileDescription", "Gank - Game Hub");
+    res.set("LegalCopyright", "Copyright © 2026 Gank Contributors");
+    res.set("ProductVersion", "0.1.0.0");
+    res.set("FileVersion", "0.1.0.0");
+    res.set("OriginalFilename", "Gank.exe");
     if let Err(e) = res.compile() {
         eprintln!("Warning: failed to compile Windows icon resources: {}", e);
     }

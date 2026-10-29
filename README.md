@@ -1,5 +1,27 @@
 # Gank 🎮
 
+<p align="center">
+  <a href="https://github.com/carllosnc/gank/actions/workflows/ci.yml">
+    <img src="https://github.com/carllosnc/gank/actions/workflows/ci.yml/badge.svg" alt="CI Status" />
+  </a>
+  <a href="https://github.com/carllosnc/gank/releases">
+    <img src="https://img.shields.io/github/v/release/carllosnc/gank?color=3b82f6&logo=github" alt="Release" />
+  </a>
+  <a href="https://www.rust-lang.org/">
+    <img src="https://img.shields.io/badge/Language-Rust-orange.svg?logo=rust" alt="Language: Rust" />
+  </a>
+  <a href="https://github.com/carllosnc/gank">
+    <img src="https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078d4?logo=windows" alt="Platform: Windows" />
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" />
+  </a>
+</p>
+
+<p align="center">
+  <img src="assets/preview.jpg" alt="Gank Game Hub Interface" width="100%" />
+</p>
+
 A fast, lightweight, and modern desktop game shortcut hub and launcher built in **Rust** with an uncompromising focus on **performance**, **minimal resource footprint**, and **instant startup**.
 
 The goal of Gank is to unify your fragmented game libraries (Steam, Epic Games, EA App, Ubisoft Connect, Battle.net, GOG, Xbox, and Emulators) into a single, cohesive, and cinematic interface without the overhead of keeping multiple sluggish store launchers running in the background.
@@ -29,7 +51,7 @@ The goal of Gank is to unify your fragmented game libraries (Steam, Epic Games, 
 
 ```text
 gank/
-├── assets/              # Inter fonts, high-resolution official SVG and PNG brand icons
+├── assets/              # Inter fonts, high-resolution official brand icons, preview
 ├── src/
 │   ├── main.rs          # Entry point, eframe setup, WGPU pipeline and Windows App ID
 │   ├── models.rs        # Core data structures (Game, Platform, LaunchCommand)
