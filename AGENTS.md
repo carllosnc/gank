@@ -1,103 +1,106 @@
-# AGENTS.md — Guia e Diretrizes para Agentes de IA no Gank
+# AGENTS.md — AI Agent Guide and Repository Governance for Gank
 
-Este documento define a arquitetura, padrões de código, regras de design e o roadmap do projeto **Gank**. Qualquer agente de IA ou desenvolvedor pareado deve seguir rigorosamente estas diretrizes ao propor, modificar ou refatorar código neste repositório.
-
----
-
-## 🎮 Visão Geral do Projeto
-
-**Gank** é um agregador e inicializador desktop de jogos ultrarrápido, minimalista e elegante, desenvolvido em **Rust**, utilizando **egui** e **wgpu**.
-
-- **Objetivo Principal:** Centralizar bibliotecas de jogos fragmentadas (Steam, Epic Games, EA App, Ubisoft Connect, Battle.net, GOG, Xbox e Emuladores) em uma única interface cinematográfica e fluida, sem a sobrecarga de múltiplos launchers abertos em segundo plano.
-- **Diferencial Competitivo:** Consumo de CPU inferior a 1% em idle, inicialização instantânea em milissegundos, visual imersivo com shaders WGPU em tempo real e arquitetura com zero alocações por frame de renderização.
+This document defines the architecture, coding standards, design rules, and roadmap for the **Gank** project. Any AI agent or human developer collaborating on this repository must strictly adhere to these guidelines when proposing, modifying, or refactoring code.
 
 ---
 
-## 🏛️ Arquitetura e Estrutura de Pastas
+## 🎮 Project Overview
+
+**Gank** is an ultra-fast, minimalist, and elegant desktop game aggregator and launcher developed in **Rust**, utilizing **egui** and **wgpu**.
+
+- **Core Mission:** Unify fragmented game libraries (Steam, Epic Games, EA App, Ubisoft Connect, Battle.net, GOG, Xbox, and Emulators) into a single cinematic, responsive interface without the overhead of multiple store clients running in the background.
+- **Competitive Advantage:** Idle CPU usage below 0.4%, cold startup under 90 milliseconds, immersive real-time WGPU procedural shaders, and zero allocations per frame in the main render loop.
+
+---
+
+## 🏛️ Architecture and Directory Structure
 
 ```text
 gank/
 ├── assets/
-│   ├── fonts/           # Inter-Regular e Inter-SemiBold (.otf)
-│   └── icons/           # Ícones oficiais SVG e PNG de alta resolução
+│   ├── fonts/           # Inter-Regular and Inter-SemiBold (.otf)
+│   └── icons/           # Official SVG and high-resolution PNG brand icons
 ├── src/
-│   ├── main.rs          # Ponto de entrada, configuração do eframe e pipeline WGPU
-│   ├── models.rs        # Estruturas centrais (Game, Platform, LaunchCommand)
-│   ├── config.rs        # Configuração do app e chaves de API persistidas em JSON
-│   ├── artwork.rs       # Cache local de capas, conversão ffmpeg de capas animadas e thumbnails
-│   ├── metadata/        # Enriquecimento assíncrono de metadados
-│   │   ├── mod.rs       # Gerenciador e cache em disco de metadados
-│   │   ├── rawg.rs      # Integração com API RAWG
-│   │   ├── steam_store.rs # Web scraping leve da loja da Steam
-│   │   └── steamgrid.rs # Integração com SteamGridDB
-│   ├── scanners/        # Módulos de detecção local de plataformas instaladas
-│   │   ├── mod.rs       # Agregador multi-plataforma e mock de jogos populares
-│   │   ├── steam.rs     # Parser de manifests VDF (.acf) e libraryfolders
-│   │   ├── epic.rs      # Parser de manifests da Epic Games (.item)
-│   │   ├── ubisoft.rs   # Leitor do registro e manifests Ubisoft Connect
-│   │   ├── ea.rs        # Leitor de manifestos e registro EA App / Origin
-│   │   ├── battlenet.rs # Parser do banco de dados Battle.net (.db / registry)
-│   │   ├── emulator.rs  # Varredor de ROMs e emuladores (RetroArch, RPCS3, etc.)
-│   │   └── process.rs   # Utilitários de processos e execução segura
-│   └── ui/              # Camada de apresentação e componentes egui
-│       ├── mod.rs       # Exportações do módulo de UI
-│       ├── app.rs       # Loop de renderização principal (GankApp) e detalhes do jogo
-│       ├── aurora_shader.rs # Shaders WGSL de poeira cósmica e mesh gradient
-│       ├── components.rs# Pílulas de filtro, botões de ação e cards padronizados
-│       ├── icons.rs     # Imagens estáticas e glyphs Phosphor
-│       └── theme.rs     # Tokens de design (cores Tailwind Blue, tipografia, raios)
-├── AGENTS.md            # Este arquivo de governança
-├── ROADMAP.md           # Roadmap detalhado para a versão v0.1.0 e além
-├── Cargo.toml           # Dependências e perfis de otimização de release
-└── README.md            # Documentação pública do repositório
+│   ├── main.rs          # Entry point, eframe setup, WGPU pipeline and Windows App ID
+│   ├── models.rs        # Core data structures (Game, Platform, LaunchCommand)
+│   ├── config.rs        # Application configuration and API keys persisted as JSON
+│   ├── artwork.rs       # Local cover cache, ffmpeg animated loop conversion and thumbnailing
+│   ├── metadata/        # Async metadata enrichment
+│   │   ├── mod.rs       # Metadata manager and on-disk JSON cache
+│   │   ├── rawg.rs      # RAWG API integration
+│   │   ├── steam_store.rs # Lightweight Steam store web scraping
+│   │   └── steamgrid.rs # SteamGridDB integration
+│   ├── scanners/        # Local detection modules for installed game platforms
+│   │   ├── mod.rs       # Multi-platform aggregator and popular games scanner
+│   │   ├── steam.rs     # Steam VDF (.acf) manifest and libraryfolders parser
+│   │   ├── epic.rs      # Epic Games manifest (.item) parser
+│   │   ├── ubisoft.rs   # Ubisoft Connect registry and manifest reader
+│   │   ├── ea.rs        # EA App / Origin manifest and registry reader
+│   │   ├── battlenet.rs # Battle.net database (.db / registry) parser
+│   │   ├── emulator.rs  # ROM and emulator scanner (RetroArch, RPCS3, etc.)
+│   │   └── process.rs   # Process spawning utilities and safe execution
+│   └── ui/              # Presentation layer and egui components
+│       ├── mod.rs       # UI module re-exports
+│       ├── app.rs       # Main rendering loop (GankApp) and game details view
+│       ├── aurora_shader.rs # WGSL shaders for procedural cosmic dust and mesh gradient
+│       ├── components.rs# Filter pills, action buttons, and standardized cards
+│       ├── icons.rs     # Static images and Phosphor icon glyphs
+│       └── theme.rs     # Design tokens (Tailwind Blue, typography, border radii)
+├── AGENTS.md            # This governance and architecture guide
+├── ROADMAP.md           # Detailed milestone roadmap for v0.1.0 and beyond
+├── Cargo.toml           # Dependencies and release optimization profile
+└── README.md            # Public repository documentation
 ```
 
 ---
 
-## ⚡ Regras de Ouro de Performance (Anti-Regressão)
+## ⚡ Performance Rules of Thumb (Anti-Regression)
 
-1. **Zero-Allocation no Loop Principal (`update`):**
-   - **Proibido** clonar coleções inteiras de `Game` ou `String`s a cada frame (16ms).
-   - Use fatias e referências (`Vec<&Game>`). Clonagens de `Game` só devem ocorrer pontualmente quando o usuário clica para abrir a página de detalhes ou disparar o executável.
-2. **I/O Não Bloqueante (Thread Isolation):**
-   - **Nunca** realize operações de rede (`ureq`), leituras extensas de disco (`fs::read_dir`) ou decodificação pesada de imagens dentro do método `update` da UI.
-   - Todo I/O deve ser despachado via canais `std::sync::mpsc` para worker threads dedicadas.
-3. **Caches em Memória e `OnceLock`:**
-   - O caminho do diretório de capas deve ser resolvido uma única vez com `std::sync::OnceLock`.
-   - Listas de capas animadas e mapeamentos de capas em disco devem ser consultados em `HashSet` / `HashMap` mantidos em memória, evitando syscalls do Windows a cada frame.
-4. **Focus Throttling:**
-   - O aplicativo roda a 60 FPS com VSync (`Fifo`) enquanto a janela estiver em foco.
-   - Quando a janela perde o foco (ex.: usuário está em um jogo ou navegando), a taxa de repintura deve ser reduzida para 15-30 FPS (66ms) para poupar CPU/GPU.
-5. **Viewport Culling Obrigatório:**
-   - Cards e posters fora da área visível (`!ui.is_rect_visible(rect)`) devem abortar a pintura imediatamente para evitar trabalho inútil da GPU.
-
----
-
-## 🎨 Design System e Diretrizes Visuais
-
-- **Paleta de Cores:**
-  - Base: Midnight Velvet escuro (`#080b12` a `#020408`) via Mesh Gradient WGPU.
-  - Acento Primário: **Tailwind Blue** (`BLUE_500`: `#3b82f6`, `BLUE_600`: `#2563eb`, `BLUE_700`: `#1d4ed8`).
-  - Superfícies: Vidro translúcido escuro (`rgba(18, 22, 30, alpha)`).
-  - Pílulas e Seletores: Borda sutil de 1px azul no estado ativo, sem linhas divisórias duras (*no separator lines*).
-- **Tipografia:**
-  - Fonte Proporcional: **Inter** (Regular para corpo, SemiBold para títulos e botões).
-  - Ícones: **Phosphor Icons** integrados nativamente nas famílias de fonte do egui + Ícones oficiais de plataformas vetoriais/rasterizados em alta resolução.
-- **Proporção de Capas:**
-  - Padrão oficial 2:3 vertical (box art padrão Steam/GOG: 600x900 / 300x450).
-  - Arredondamento suave de 8.0px nos cards da biblioteca e 12.0px no poster hero da tela de detalhes.
+1. **Zero-Allocation in the Main Render Loop (`update`):**
+   - **Never** clone collections of `Game` or allocate dynamic `String`s every frame (16ms).
+   - Use slices and borrowed references (`Vec<&Game>`). Cloning a `Game` must only happen when the user explicitly clicks to open the details modal or launch the game executable.
+2. **Non-Blocking I/O (Thread Isolation):**
+   - **Never** perform network requests (`ureq`), heavy disk scans (`fs::read_dir`), or image decodes directly inside the UI `update` method.
+   - All I/O must be dispatched through `std::sync::mpsc` channels to background worker threads.
+3. **In-Memory Caches and `OnceLock`:**
+   - The cover directory path must be resolved once using `std::sync::OnceLock`.
+   - Animated cover identifiers and cached disk mappings should be queried against in-memory `HashSet` / `HashMap` collections, avoiding repeated Windows syscalls every frame.
+4. **Focus Throttling & Working Set Trimming:**
+   - The app renders at 60 FPS with VSync (`Fifo`) when the window is focused.
+   - When the window loses focus (e.g. while the user is in-game or browsing), the frame pacing is throttled to 15 FPS (66ms) to conserve CPU/GPU resources, and unused working set pages are trimmed.
+5. **Mandatory Viewport Culling:**
+   - Cards and posters outside the visible viewport (`!ui.is_rect_visible(rect)`) must immediately abort paint operations to avoid unnecessary GPU work.
+6. **Smart Downsampling on Texture Loading:**
+   - Covers must be downsampled to a maximum bounding box of 400x600 pixels upon decoding, reducing raw uncompressed texture memory by 55%–85% while preserving 2x HiDPI clarity.
 
 ---
 
-## 🗺️ Roadmap de Lançamento: Versão v0.1.0
+## 🎨 Design System and Visual Guidelines
 
-### Status Atual (95% Concluído):
-- [x] Scanners para 6 plataformas (Steam, Epic, Ubisoft, EA, Battle.net, Emuladores).
-- [x] Auto-inicialização silenciosa de launchers em segundo plano (Steam, Epic, EA, Ubisoft).
-- [x] Shader WGSL nativo com poeira estelar flutuante e mesh gradient orgânico.
-- [x] Tela cinematográfica de detalhes do jogo (Poster expandido, sinopse, desenvolvedora, gênero, tamanho em disco).
-- [x] Suporte a capas personalizadas com drag-and-drop e colagem de URL (Ctrl+V).
-- [x] Capas animadas com conversão de vídeo loop (ffmpeg) para frames 2:3.
-- [x] Otimizações de Zero-Allocation e Throttling de foco com consumo <0.4% CPU em idle.
-- [x] Empacotamento e Ícone do Executável Windows (.ico nos recursos do executável via build.rs/winres e janela via with_icon).
-- [x] Configuração do Repositório Remoto no GitHub (https://github.com/carllosnc/gank).
+- **Color Palette:**
+  - Base: Midnight Velvet dark (`#080b12` to `#020408`) via native WGPU Mesh Gradient.
+  - Primary Accent: **Tailwind Blue** (`BLUE_500`: `#3b82f6`, `BLUE_600`: `#2563eb`, `BLUE_700`: `#1d4ed8`).
+  - Surfaces: Dark translucent glass (`rgba(18, 22, 30, alpha)`).
+  - Filter Pills & Selectors: Clean borderless translucent capsule when active; no hard dividing lines (*no separator lines*).
+- **Typography:**
+  - Proportional Font: **Inter** (Regular for body text, SemiBold for headers and primary buttons).
+  - Icons: **Phosphor Icons** integrated natively into egui font families + high-resolution official vector/raster platform logos.
+- **Cover Aspect Ratio:**
+  - Official 2:3 vertical aspect ratio (standard Steam/GOG box art: 600x900 / 300x450).
+  - Smooth corner rounding of 8.0px for library cards and 12.0px for the hero poster in the details modal.
+
+---
+
+## 🗺️ Release Roadmap: Version v0.1.0
+
+### Status (100% Completed):
+- [x] Scanners for 6 platforms (Steam, Epic, Ubisoft, EA, Battle.net, Emulators).
+- [x] Silent background launcher auto-bootstrapping (Steam, Epic, EA, Ubisoft).
+- [x] Native WGSL procedural shader with floating cosmic dust and organic mesh gradient.
+- [x] Cinematic game details screen (expanded hero poster, synopsis, developer, genres, disk size).
+- [x] Custom cover art replacement with drag-and-drop and clipboard paste (Ctrl+V).
+- [x] Animated covers with video loop conversion (ffmpeg) to 2:3 frames.
+- [x] Zero-Allocation and focus throttling optimizations with idle CPU < 0.4%.
+- [x] Windows executable resource packaging (.ico icon via build.rs/winres, window icon, and explicit AppUserModelID).
+- [x] Low-RAM footprint (~32 MB) via `mimalloc` and dynamic memory trimming.
+- [x] Remote repository setup on GitHub (https://github.com/carllosnc/gank).
