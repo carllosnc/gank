@@ -3,6 +3,21 @@
 version = 4
 
 [[package]]
+name = "Gank"
+version = "0.1.0"
+dependencies = [
+ "eframe",
+ "egui",
+ "egui-phosphor",
+ "egui_extras",
+ "image",
+ "serde",
+ "serde_json",
+ "ureq",
+ "winreg",
+]
+
+[[package]]
 name = "ab_glyph"
 version = "0.2.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -567,6 +582,15 @@ dependencies = [
  "log",
  "nohash-hasher",
  "serde",
+]
+
+[[package]]
+name = "egui-phosphor"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c873785789bc94a14dcbbd361cda1e498957fa1b4ec389ba650fd651849463b"
+dependencies = [
+ "egui",
 ]
 
 [[package]]
@@ -1184,20 +1208,6 @@ name = "khronos_api"
 version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2db585e1d738fc771bf08a151420d3ed193d9d895a36df7f6f8a9456b911ddc"
-
-[[package]]
-name = "kiro"
-version = "0.1.0"
-dependencies = [
- "eframe",
- "egui",
- "egui_extras",
- "image",
- "serde",
- "serde_json",
- "ureq",
- "winreg",
-]
 
 [[package]]
 name = "libc"
