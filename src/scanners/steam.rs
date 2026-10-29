@@ -134,7 +134,8 @@ impl SteamScanner {
                             // Filter out Steamworks Common Redistributables and common tools
                             if game.id != "228980" && !seen_ids.contains(&game.id) {
                                 seen_ids.insert(game.id.clone());
-                                game.cover_image_path = Self::find_cover_image(&steam_path, &game.id);
+                                game.cover_image_path = crate::artwork::get_cached_cover(&game.id)
+                                    .or_else(|| Self::find_cover_image(&steam_path, &game.id));
                                 games.push(game);
                             }
                         }

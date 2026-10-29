@@ -1,12 +1,26 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SystemRequirements {
+    pub os: Option<String>,
+    pub processor: Option<String>,
+    pub memory: Option<String>,
+    pub graphics: Option<String>,
+    pub storage: Option<String>,
+    pub directx: Option<String>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Platform {
     Steam,
     EpicGames,
     Gog,
     Xbox,
+    Ubisoft,
+    Ea,
+    BattleNet,
+    Emulator,
     Custom,
 }
 
@@ -17,6 +31,10 @@ impl Platform {
             Self::EpicGames => "Epic Games",
             Self::Gog => "GOG Galaxy",
             Self::Xbox => "Xbox / MS Store",
+            Self::Ubisoft => "Ubisoft",
+            Self::Ea => "EA App",
+            Self::BattleNet => "Battle.net",
+            Self::Emulator => "Emulador",
             Self::Custom => "Personalizado",
         }
     }
@@ -31,9 +49,12 @@ pub struct Game {
     pub install_dir: Option<PathBuf>,
     pub executable_path: Option<PathBuf>,
     pub cover_image_path: Option<PathBuf>,
+    #[serde(default, skip_serializing)]
+    pub cover_uri: Option<String>,
     pub install_size: Option<u64>,
     pub last_played: Option<u64>,
     pub version: Option<String>,
+    pub metadata: Option<crate::metadata::GameMetadata>,
 }
 
 impl Game {
@@ -51,12 +72,22 @@ impl Game {
             install_dir: None,
             executable_path: None,
             cover_image_path: None,
+            cover_uri: None,
             install_size: None,
             last_played: None,
             version: None,
+            metadata: None,
         }
     }
 
+    pub fn set_cover_path(&mut self, path: Option<PathBuf>) {
+        self.cover_uri = path.as_ref().map(|p| {
+            format!("file://{}", p.to_string_lossy().replace('\\', "/"))
+        });
+        self.cover_image_path = path;
+    }
+
+    #[allow(dead_code)]
     pub fn formatted_size(&self) -> Option<String> {
         self.install_size.map(|bytes| {
             const GIB: f64 = 1024.0 * 1024.0 * 1024.0;
@@ -72,6 +103,7 @@ impl Game {
         })
     }
 
+    #[allow(dead_code)]
     pub fn formatted_last_played(&self) -> String {
         match self.last_played {
             None | Some(0) => "Nunca jogado".to_string(),
