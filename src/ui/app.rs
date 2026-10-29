@@ -912,7 +912,7 @@ impl eframe::App for GankApp {
                                     .reveal_start_time
                                     .map(|t| (now - t).as_secs_f32())
                                     .unwrap_or(10.0);
-                                let anim_duration = 0.28_f32; // 280ms smooth ease per row
+                                let anim_duration = 0.38_f32; // 380ms smooth ease per card
                                 let mut any_animating = false;
                                 let mut any_anim_playing = false;
 
@@ -920,8 +920,11 @@ impl eframe::App for GankApp {
                                     ui.horizontal(|ui| {
                                         ui.spacing_mut().item_spacing = egui::vec2(spacing, spacing);
                                         for (col_idx, &game) in row_chunk.iter().enumerate() {
-                                            // Cohesive cascade: 30ms per row + 10ms per column (capped at 220ms total)
-                                            let card_delay = (row_idx as f32 * 0.030_f32 + col_idx as f32 * 0.010_f32).min(0.22);
+                                            // Enhanced cascade: 80ms initial + 75ms per row + 35ms per column (capped at 650ms)
+                                            let card_delay = (0.08_f32
+                                                + row_idx as f32 * 0.075_f32
+                                                + col_idx as f32 * 0.035_f32)
+                                                .min(0.65);
 
                                             let progress = if elapsed < card_delay {
                                                 any_animating = true;
