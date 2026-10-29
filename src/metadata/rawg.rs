@@ -129,10 +129,7 @@ impl RawgClient {
         }
 
         // Fetch deep details (developer, publisher, synopsis) using the game ID
-        let detail_url = format!(
-            "https://api.rawg.io/api/games/{}?key={}",
-            item.id, api_key
-        );
+        let detail_url = format!("https://api.rawg.io/api/games/{}?key={}", item.id, api_key);
 
         if let Ok(detail_resp) = agent
             .get(&detail_url)
@@ -161,13 +158,21 @@ fn parse_requirements_text(text: &str) -> SystemRequirements {
         let lower = line.to_lowercase();
         if lower.contains("os:") || lower.contains("sistema:") {
             req.os = extract_after_colon(line);
-        } else if lower.contains("processor:") || lower.contains("processador:") || lower.contains("cpu:") {
+        } else if lower.contains("processor:")
+            || lower.contains("processador:")
+            || lower.contains("cpu:")
+        {
             req.processor = extract_after_colon(line);
-        } else if lower.contains("memory:") || lower.contains("memória:") || lower.contains("ram:") {
+        } else if lower.contains("memory:") || lower.contains("memória:") || lower.contains("ram:")
+        {
             req.memory = extract_after_colon(line);
-        } else if lower.contains("graphics:") || lower.contains("vídeo:") || lower.contains("gpu:") {
+        } else if lower.contains("graphics:") || lower.contains("vídeo:") || lower.contains("gpu:")
+        {
             req.graphics = extract_after_colon(line);
-        } else if lower.contains("storage:") || lower.contains("armazenamento:") || lower.contains("disco:") {
+        } else if lower.contains("storage:")
+            || lower.contains("armazenamento:")
+            || lower.contains("disco:")
+        {
             req.storage = extract_after_colon(line);
         } else if lower.contains("directx:") {
             req.directx = extract_after_colon(line);

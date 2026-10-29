@@ -51,7 +51,11 @@ pub fn is_process_running(target_name: &str) -> bool {
 
     if unsafe { Process32FirstW(snapshot, &mut entry) } != 0 {
         loop {
-            let len = entry.szExeFile.iter().position(|&c| c == 0).unwrap_or(MAX_PATH);
+            let len = entry
+                .szExeFile
+                .iter()
+                .position(|&c| c == 0)
+                .unwrap_or(MAX_PATH);
             let name = String::from_utf16_lossy(&entry.szExeFile[..len]).to_lowercase();
             if name == target {
                 found = true;

@@ -23,7 +23,8 @@ impl EaScanner {
                 r"SOFTWARE\Origin",
             ] {
                 if let Ok(key) = hklm.open_subkey_with_flags(subkey, KEY_READ) {
-                    if let Ok(install_path) = key.get_value::<String, _>("InstallLocation")
+                    if let Ok(install_path) = key
+                        .get_value::<String, _>("InstallLocation")
                         .or_else(|_| key.get_value::<String, _>("ClientPath"))
                     {
                         let p = PathBuf::from(install_path);
@@ -99,7 +100,8 @@ impl EaScanner {
                                 if dir.exists() {
                                     seen_ids.insert(sub_name.clone());
 
-                                    let launch_uri = format!("origin2://game/launch?offerIds={}", sub_name);
+                                    let launch_uri =
+                                        format!("origin2://game/launch?offerIds={}", sub_name);
                                     let mut game = Game::new(
                                         format!("ea_{}", sub_name),
                                         title,
@@ -125,7 +127,11 @@ impl EaScanner {
                         for entry in entries.flatten() {
                             let p = entry.path();
                             if p.is_dir() {
-                                let id = p.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string();
+                                let id = p
+                                    .file_name()
+                                    .and_then(|n| n.to_str())
+                                    .unwrap_or("")
+                                    .to_string();
                                 if !seen_ids.contains(&id) && !id.is_empty() {
                                     if let Some(game) = Self::parse_manifest_dir(&p, &id) {
                                         seen_ids.insert(id);
@@ -139,7 +145,7 @@ impl EaScanner {
             }
         }
 
-        games.sort_by(|a, b| a.title.to_lowercase().cmp(&b.title.to_lowercase()));
+        games.sort_by_key(|a| a.title.to_lowercase());
         games
     }
 
@@ -156,19 +162,17 @@ impl EaScanner {
                             if part.starts_with("title=") {
                                 title = Some(part.trim_start_matches("title=").replace('+', " "));
                             } else if part.starts_with("dipinstallpath=") {
-                                install_path = Some(PathBuf::from(part.trim_start_matches("dipinstallpath=").replace('+', " ")));
+                                install_path = Some(PathBuf::from(
+                                    part.trim_start_matches("dipinstallpath=").replace('+', " "),
+                                ));
                             }
                         }
 
                         let title = title.unwrap_or_else(|| id.to_string());
                         let launch_uri = format!("origin2://game/launch?offerIds={}", id);
 
-                        let mut game = Game::new(
-                            format!("ea_{}", id),
-                            title,
-                            Platform::Ea,
-                            launch_uri,
-                        );
+                        let mut game =
+                            Game::new(format!("ea_{}", id), title, Platform::Ea, launch_uri);
 
                         if let Some(ip) = install_path {
                             if ip.exists() {
@@ -192,7 +196,11 @@ impl EaScanner {
                 if p.is_file() {
                     if let Some(ext) = p.extension().and_then(|s| s.to_str()) {
                         if ext.eq_ignore_ascii_case("exe") {
-                            let name = p.file_name().and_then(|n| n.to_str()).unwrap_or("").to_lowercase();
+                            let name = p
+                                .file_name()
+                                .and_then(|n| n.to_str())
+                                .unwrap_or("")
+                                .to_lowercase();
                             if !name.starts_with("unins")
                                 && !name.contains("cleanup")
                                 && !name.contains("installer")

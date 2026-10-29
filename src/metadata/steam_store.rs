@@ -1,5 +1,5 @@
-use std::time::Duration;
 use crate::models::SystemRequirements;
+use std::time::Duration;
 
 #[derive(serde::Deserialize)]
 struct SteamAppDetailsResponse {
@@ -55,7 +55,10 @@ struct SteamReleaseDate {
 }
 
 /// Fetches official metadata directly from Steam Storefront API (Zero API key required!).
-pub fn fetch_steam_store_metadata(app_id: &str, title: &str) -> Option<crate::metadata::GameMetadata> {
+pub fn fetch_steam_store_metadata(
+    app_id: &str,
+    title: &str,
+) -> Option<crate::metadata::GameMetadata> {
     let url = format!(
         "https://store.steampowered.com/api/appdetails?appids={}&l=brazilian",
         app_id
@@ -102,7 +105,9 @@ pub fn fetch_steam_store_metadata(app_id: &str, title: &str) -> Option<crate::me
     }
     if let Some(movies) = data.movies {
         if let Some(first) = movies.into_iter().next() {
-            meta.trailer_url = first.mp4.and_then(|m| m.max.or(m.sd))
+            meta.trailer_url = first
+                .mp4
+                .and_then(|m| m.max.or(m.sd))
                 .or_else(|| first.webm.and_then(|w| w.max.or(w.sd)));
         }
     }
@@ -123,7 +128,8 @@ pub fn fetch_steam_store_metadata(app_id: &str, title: &str) -> Option<crate::me
 }
 
 fn parse_html_requirements(html: &str) -> SystemRequirements {
-    let clean = html.replace("<br>", "\n")
+    let clean = html
+        .replace("<br>", "\n")
         .replace("<br/>", "\n")
         .replace("<br />", "\n")
         .replace("<li>", "\n")
@@ -148,13 +154,25 @@ fn parse_html_requirements(html: &str) -> SystemRequirements {
         let lower = trimmed.to_lowercase();
         if lower.starts_with("so:") || lower.starts_with("os:") || lower.starts_with("sistema:") {
             req.os = extract_after_colon(trimmed);
-        } else if lower.starts_with("processador:") || lower.starts_with("processor:") || lower.starts_with("cpu:") {
+        } else if lower.starts_with("processador:")
+            || lower.starts_with("processor:")
+            || lower.starts_with("cpu:")
+        {
             req.processor = extract_after_colon(trimmed);
-        } else if lower.starts_with("memória:") || lower.starts_with("memory:") || lower.starts_with("ram:") {
+        } else if lower.starts_with("memória:")
+            || lower.starts_with("memory:")
+            || lower.starts_with("ram:")
+        {
             req.memory = extract_after_colon(trimmed);
-        } else if lower.starts_with("placa de vídeo:") || lower.starts_with("graphics:") || lower.starts_with("vídeo:") {
+        } else if lower.starts_with("placa de vídeo:")
+            || lower.starts_with("graphics:")
+            || lower.starts_with("vídeo:")
+        {
             req.graphics = extract_after_colon(trimmed);
-        } else if lower.starts_with("armazenamento:") || lower.starts_with("storage:") || lower.starts_with("espaço no disco:") {
+        } else if lower.starts_with("armazenamento:")
+            || lower.starts_with("storage:")
+            || lower.starts_with("espaço no disco:")
+        {
             req.storage = extract_after_colon(trimmed);
         } else if lower.starts_with("directx:") {
             req.directx = extract_after_colon(trimmed);

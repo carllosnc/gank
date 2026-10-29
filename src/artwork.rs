@@ -6,31 +6,39 @@ use std::time::Duration;
 /// Returns the persistent local directory for cached game cover posters.
 pub fn get_covers_cache_dir() -> PathBuf {
     static CACHE_DIR: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
-    CACHE_DIR.get_or_init(|| {
-        #[cfg(target_os = "windows")]
-        let base = std::env::var("LOCALAPPDATA")
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| {
-                std::env::var("USERPROFILE")
-                    .map(|p| PathBuf::from(p).join("AppData").join("Local"))
-                    .unwrap_or_else(|_| PathBuf::from("."))
-            });
+    CACHE_DIR
+        .get_or_init(|| {
+            #[cfg(target_os = "windows")]
+            let base = std::env::var("LOCALAPPDATA")
+                .map(PathBuf::from)
+                .unwrap_or_else(|_| {
+                    std::env::var("USERPROFILE")
+                        .map(|p| PathBuf::from(p).join("AppData").join("Local"))
+                        .unwrap_or_else(|_| PathBuf::from("."))
+                });
 
-        #[cfg(not(target_os = "windows"))]
-        let base = std::env::var("HOME")
-            .map(|h| PathBuf::from(h).join(".cache"))
-            .unwrap_or_else(|_| PathBuf::from("."));
+            #[cfg(not(target_os = "windows"))]
+            let base = std::env::var("HOME")
+                .map(|h| PathBuf::from(h).join(".cache"))
+                .unwrap_or_else(|_| PathBuf::from("."));
 
-        let dir = base.join("gank").join("covers");
-        let _ = fs::create_dir_all(&dir);
-        dir
-    }).clone()
+            let dir = base.join("gank").join("covers");
+            let _ = fs::create_dir_all(&dir);
+            dir
+        })
+        .clone()
 }
 
 /// Sanitizes a string for use as a safe filename.
 pub fn sanitize_filename(id: &str) -> String {
     id.chars()
-        .map(|c| if c.is_alphanumeric() || c == '_' || c == '-' { c } else { '_' })
+        .map(|c| {
+            if c.is_alphanumeric() || c == '_' || c == '-' {
+                c
+            } else {
+                '_'
+            }
+        })
         .collect()
 }
 
@@ -44,10 +52,11 @@ pub fn get_cached_cover(id: &str) -> Option<PathBuf> {
         for entry in entries.flatten() {
             let path = entry.path();
             if let Some(file_name) = path.file_name().and_then(|f| f.to_str()) {
-                if file_name.starts_with(&format!("{}_custom", safe_id)) && !file_name.contains("_anim") {
-                    if path.metadata().map(|m| m.len() > 100).unwrap_or(false) {
-                        return Some(path);
-                    }
+                if file_name.starts_with(&format!("{}_custom", safe_id))
+                    && !file_name.contains("_anim")
+                    && path.metadata().map(|m| m.len() > 100).unwrap_or(false)
+                {
+                    return Some(path);
                 }
             }
         }
@@ -147,7 +156,11 @@ pub fn is_video_or_animation_path(path: &std::path::Path) -> bool {
 
 /// Detects if raw WebP bytes correspond to an animated WebP file (VP8X chunk with animation bit set).
 pub fn is_animated_webp_bytes(bytes: &[u8]) -> bool {
-    if bytes.len() >= 21 && &bytes[0..4] == b"RIFF" && &bytes[8..12] == b"WEBP" && &bytes[12..16] == b"VP8X" {
+    if bytes.len() >= 21
+        && &bytes[0..4] == b"RIFF"
+        && &bytes[8..12] == b"WEBP"
+        && &bytes[12..16] == b"VP8X"
+    {
         return (bytes[20] & 0x02) != 0;
     }
     false
@@ -251,7 +264,9 @@ pub fn load_animated_cover_frames(id: &str) -> Vec<eframe::egui::ColorImage> {
                 .filter(|p| {
                     p.extension()
                         .and_then(|e| e.to_str())
-                        .map(|ext| ext.eq_ignore_ascii_case("jpg") || ext.eq_ignore_ascii_case("png"))
+                        .map(|ext| {
+                            ext.eq_ignore_ascii_case("jpg") || ext.eq_ignore_ascii_case("png")
+                        })
                         .unwrap_or(false)
                 })
                 .collect();
@@ -263,7 +278,8 @@ pub fn load_animated_cover_frames(id: &str) -> Vec<eframe::egui::ColorImage> {
                         let rgba = img.to_rgba8();
                         let size = [rgba.width() as usize, rgba.height() as usize];
                         let pixels = rgba.into_raw();
-                        let color_image = eframe::egui::ColorImage::from_rgba_unmultiplied(size, &pixels);
+                        let color_image =
+                            eframe::egui::ColorImage::from_rgba_unmultiplied(size, &pixels);
                         frames.push(color_image);
                     }
                 }
@@ -300,7 +316,11 @@ pub fn process_cover_image(img: image::DynamicImage) -> image::DynamicImage {
     };
 
     let cropped = img.crop_imm(crop_x, crop_y, crop_w, crop_h);
-    cropped.resize_exact(POSTER_WIDTH, POSTER_HEIGHT, image::imageops::FilterType::Lanczos3)
+    cropped.resize_exact(
+        POSTER_WIDTH,
+        POSTER_HEIGHT,
+        image::imageops::FilterType::Lanczos3,
+    )
 }
 
 /// Downloads and saves a cover image or video from a direct URL into the cache directory.
@@ -327,7 +347,7 @@ pub fn save_custom_cover_from_url(id: &str, url: &str) -> Option<PathBuf> {
         || is_animated_webp_bytes(&bytes)
         || bytes.starts_with(b"GIF")
         || (bytes.len() >= 8 && &bytes[4..8] == b"ftyp")
-        || (bytes.len() >= 4 && &bytes[0..4] == &[0x1A, 0x45, 0xDF, 0xA3]);
+        || (bytes.len() >= 4 && bytes[0..4] == [0x1A, 0x45, 0xDF, 0xA3]);
 
     if is_anim_bytes {
         let cache_dir = get_covers_cache_dir();
@@ -354,7 +374,10 @@ pub fn save_custom_cover_from_url(id: &str, url: &str) -> Option<PathBuf> {
 }
 
 /// Saves raw image bytes as a custom cover for the given game ID, with centered cover cropping to 600x900.
-pub fn save_custom_cover_from_bytes(id: &str, bytes: &[u8]) -> Result<PathBuf, Box<dyn std::error::Error + Send + Sync>> {
+pub fn save_custom_cover_from_bytes(
+    id: &str,
+    bytes: &[u8],
+) -> Result<PathBuf, Box<dyn std::error::Error + Send + Sync>> {
     let safe_id = sanitize_filename(id);
     let cache_dir = get_covers_cache_dir();
 
@@ -393,7 +416,10 @@ pub fn save_custom_cover_from_bytes(id: &str, bytes: &[u8]) -> Result<PathBuf, B
 }
 
 /// Saves a custom cover image or video selected by the user into the cache directory.
-pub fn save_custom_cover(id: &str, source_path: &std::path::Path) -> Result<PathBuf, Box<dyn std::error::Error + Send + Sync>> {
+pub fn save_custom_cover(
+    id: &str,
+    source_path: &std::path::Path,
+) -> Result<PathBuf, Box<dyn std::error::Error + Send + Sync>> {
     let safe_id = sanitize_filename(id);
     let cache_dir = get_covers_cache_dir();
 
@@ -458,7 +484,7 @@ pub fn pick_image_file() -> Option<PathBuf> {
     use std::os::windows::ffi::OsStringExt;
 
     #[repr(C)]
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, clippy::upper_case_acronyms)]
     struct OPENFILENAMEW {
         lStructSize: u32,
         hwndOwner: *mut std::ffi::c_void,
@@ -529,7 +555,10 @@ pub fn pick_image_file() -> Option<PathBuf> {
 
     let result = unsafe { GetOpenFileNameW(&mut ofn) };
     if result != 0 {
-        let len = file_buf.iter().position(|&c| c == 0).unwrap_or(file_buf.len());
+        let len = file_buf
+            .iter()
+            .position(|&c| c == 0)
+            .unwrap_or(file_buf.len());
         let os_str = OsString::from_wide(&file_buf[..len]);
         Some(PathBuf::from(os_str))
     } else {
@@ -593,10 +622,10 @@ fn try_fetch_epic_cover(title: &str) -> Option<Vec<u8>> {
                         if let Ok(img_resp) = agent.get(&image_url).call() {
                             if img_resp.status() == 200 {
                                 let mut bytes = Vec::new();
-                                if std::io::copy(&mut img_resp.into_reader(), &mut bytes).is_ok() {
-                                    if bytes.len() > 1000 {
-                                        return Some(bytes);
-                                    }
+                                if std::io::copy(&mut img_resp.into_reader(), &mut bytes).is_ok()
+                                    && bytes.len() > 1000
+                                {
+                                    return Some(bytes);
                                 }
                             }
                         }
@@ -617,7 +646,13 @@ fn generate_epic_slugs(title: &str) -> Vec<String> {
     // 1. Exact cleaned title
     let clean: String = lower
         .chars()
-        .map(|c| if c.is_alphanumeric() || c == ' ' { c } else { ' ' })
+        .map(|c| {
+            if c.is_alphanumeric() || c == ' ' {
+                c
+            } else {
+                ' '
+            }
+        })
         .collect();
     let base_slug = clean.split_whitespace().collect::<Vec<_>>().join("-");
     if !base_slug.is_empty() {
@@ -635,9 +670,18 @@ fn generate_epic_slugs(title: &str) -> Vec<String> {
 
     let clean_stripped: String = stripped
         .chars()
-        .map(|c| if c.is_alphanumeric() || c == ' ' { c } else { ' ' })
+        .map(|c| {
+            if c.is_alphanumeric() || c == ' ' {
+                c
+            } else {
+                ' '
+            }
+        })
         .collect();
-    let stripped_slug = clean_stripped.split_whitespace().collect::<Vec<_>>().join("-");
+    let stripped_slug = clean_stripped
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join("-");
     if !stripped_slug.is_empty() && stripped_slug != base_slug {
         slugs.push(stripped_slug);
     }
@@ -651,7 +695,10 @@ fn extract_epic_portrait_url(json: &serde_json::Value) -> Option<String> {
     if let Some(pages) = json.get("pages").and_then(|p| p.as_array()) {
         for page in pages {
             if let Some(hero) = page.get("data").and_then(|d| d.get("hero")) {
-                if let Some(url) = hero.get("portraitBackgroundImageUrl").and_then(|u| u.as_str()) {
+                if let Some(url) = hero
+                    .get("portraitBackgroundImageUrl")
+                    .and_then(|u| u.as_str())
+                {
                     if !url.is_empty() {
                         return Some(url.to_string());
                     }
@@ -768,7 +815,10 @@ mod tests {
     #[test]
     fn test_fetch_epic_chivalry() {
         let path = fetch_and_cache_cover("Peppermint", "Chivalry 2", Platform::EpicGames);
-        assert!(path.is_some(), "Chivalry 2 cover should be fetched and cached");
+        assert!(
+            path.is_some(),
+            "Chivalry 2 cover should be fetched and cached"
+        );
         let p = path.unwrap();
         assert!(p.exists());
         assert!(p.metadata().unwrap().len() > 1000);
@@ -776,7 +826,11 @@ mod tests {
 
     #[test]
     fn test_fetch_epic_gtav() {
-        let path = fetch_and_cache_cover("8769e24080ea413b8ebca3f1b8c50951", "Grand Theft Auto V Enhanced", Platform::EpicGames);
+        let path = fetch_and_cache_cover(
+            "8769e24080ea413b8ebca3f1b8c50951",
+            "Grand Theft Auto V Enhanced",
+            Platform::EpicGames,
+        );
         assert!(path.is_some(), "GTA V cover should be fetched and cached");
         let p = path.unwrap();
         assert!(p.exists());
@@ -810,4 +864,3 @@ mod tests {
         assert!(!is_animated_webp_bytes(&webp_static));
     }
 }
-

@@ -63,10 +63,7 @@ impl SteamScanner {
 
             // 2. Try HKLM (64-bit and 32-bit fallback)
             let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
-            for subkey in [
-                r"SOFTWARE\WOW6432Node\Valve\Steam",
-                r"SOFTWARE\Valve\Steam",
-            ] {
+            for subkey in [r"SOFTWARE\WOW6432Node\Valve\Steam", r"SOFTWARE\Valve\Steam"] {
                 if let Ok(steam_key) = hklm.open_subkey_with_flags(subkey, KEY_READ) {
                     if let Ok(path_str) = steam_key.get_value::<String, _>("InstallPath") {
                         let path = PathBuf::from(path_str);
@@ -145,13 +142,16 @@ impl SteamScanner {
         }
 
         // Sort alphabetically by title
-        games.sort_by(|a, b| a.title.to_lowercase().cmp(&b.title.to_lowercase()));
+        games.sort_by_key(|a| a.title.to_lowercase());
         games
     }
 
     /// Attempts to locate local cached poster/cover art for a Steam game.
     pub fn find_cover_image(steam_path: &Path, app_id: &str) -> Option<PathBuf> {
-        let cache_dir = steam_path.join("appcache").join("librarycache").join(app_id);
+        let cache_dir = steam_path
+            .join("appcache")
+            .join("librarycache")
+            .join(app_id);
 
         // 1. Direct standard vertical 600x900 poster
         let direct_600 = cache_dir.join("library_600x900.jpg");
@@ -262,10 +262,7 @@ impl SteamScanner {
             game.version = build_id;
 
             if let Some(folder) = install_dir_name {
-                let full_install_path = library_root
-                    .join("steamapps")
-                    .join("common")
-                    .join(folder);
+                let full_install_path = library_root.join("steamapps").join("common").join(folder);
                 game.install_dir = Some(full_install_path);
             }
 
@@ -282,16 +279,20 @@ mod tests {
 
     #[test]
     fn test_steam_detection() {
-        println!("Steam install path: {:?}", SteamScanner::find_steam_install_path());
+        println!(
+            "Steam install path: {:?}",
+            SteamScanner::find_steam_install_path()
+        );
         println!("Steam exe: {:?}", SteamScanner::find_steam_exe());
         println!("Steam is running: {}", SteamScanner::is_running());
 
         let games = SteamScanner::scan_installed_games();
         println!("Steam games encontradas: {}", games.len());
         for game in games.iter() {
-            println!("- {} (Size: {:?}, Cover: {:?}, LastPlayed: {:?})", 
-                game.title, 
-                game.formatted_size(), 
+            println!(
+                "- {} (Size: {:?}, Cover: {:?}, LastPlayed: {:?})",
+                game.title,
+                game.formatted_size(),
                 game.cover_image_path,
                 game.formatted_last_played()
             );

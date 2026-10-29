@@ -6,8 +6,8 @@ pub mod process;
 pub mod steam;
 pub mod ubisoft;
 
-use crate::models::{Game, Platform};
 use crate::metadata::GameMetadata;
+use crate::models::{Game, Platform};
 
 pub fn scan_all_platforms() -> Vec<Game> {
     let mut all_games = Vec::new();
@@ -32,7 +32,10 @@ pub fn scan_all_platforms() -> Vec<Game> {
 
     // 7. Add popular games to enrich grid visualization if not already installed locally
     for popular in get_popular_games() {
-        if !all_games.iter().any(|g| g.id == popular.id || g.title.to_lowercase() == popular.title.to_lowercase()) {
+        if !all_games
+            .iter()
+            .any(|g| g.id == popular.id || g.title.to_lowercase() == popular.title.to_lowercase())
+        {
             all_games.push(popular);
         }
     }
@@ -42,7 +45,10 @@ pub fn scan_all_platforms() -> Vec<Game> {
     for game in &mut all_games {
         if game.cover_image_path.is_none() {
             let safe_id = crate::artwork::sanitize_filename(&game.id);
-            if let Some(path) = cached_covers_map.get(&safe_id).or_else(|| cached_covers_map.get(&game.id)) {
+            if let Some(path) = cached_covers_map
+                .get(&safe_id)
+                .or_else(|| cached_covers_map.get(&game.id))
+            {
                 game.set_cover_path(Some(path.clone()));
             }
         }
@@ -54,7 +60,7 @@ pub fn scan_all_platforms() -> Vec<Game> {
     }
 
     // Sort all games alphabetically
-    all_games.sort_by(|a, b| a.title.to_lowercase().cmp(&b.title.to_lowercase()));
+    all_games.sort_by_key(|a| a.title.to_lowercase());
 
     all_games
 }

@@ -59,8 +59,7 @@ impl AppConfig {
 
     pub fn save(&self) -> Result<(), std::io::Error> {
         let path = get_config_path();
-        let content = serde_json::to_string_pretty(self)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+        let content = serde_json::to_string_pretty(self).map_err(std::io::Error::other)?;
         fs::write(path, content)
     }
 }

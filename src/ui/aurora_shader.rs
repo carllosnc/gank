@@ -207,10 +207,7 @@ pub struct CosmicDustBackgroundRenderState {
 }
 
 impl CosmicDustBackgroundRenderState {
-    pub fn new(
-        device: &wgpu::Device,
-        target_format: wgpu::TextureFormat,
-    ) -> Self {
+    pub fn new(device: &wgpu::Device, target_format: wgpu::TextureFormat) -> Self {
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("cosmic_dust_background_shader"),
             source: wgpu::ShaderSource::Wgsl(COSMIC_DUST_WGSL.into()),

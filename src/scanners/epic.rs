@@ -41,7 +41,9 @@ impl EpicScanner {
         {
             use winreg::enums::{HKEY_CLASSES_ROOT, KEY_READ};
             let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
-            if let Ok(key) = hkcr.open_subkey_with_flags(r"com.epicgames.launcher\shell\open\command", KEY_READ) {
+            if let Ok(key) =
+                hkcr.open_subkey_with_flags(r"com.epicgames.launcher\shell\open\command", KEY_READ)
+            {
                 if let Ok(cmd_str) = key.get_value::<String, _>("") {
                     let exe_str = if let Some(first_quote) = cmd_str.find('"') {
                         if let Some(second_quote) = cmd_str[first_quote + 1..].find('"') {
@@ -141,7 +143,7 @@ impl EpicScanner {
             }
         }
 
-        games.sort_by(|a, b| a.title.to_lowercase().cmp(&b.title.to_lowercase()));
+        games.sort_by_key(|a| a.title.to_lowercase());
         games
     }
 
@@ -174,7 +176,9 @@ impl EpicScanner {
         }
 
         // Epic URI format: com.epicgames.launcher://apps/<CatalogNamespace>%3A<CatalogItemId>%3A<AppName>?action=launch&silent=true
-        let app_identifier = if let (Some(ns), Some(item_id)) = (&manifest.catalog_namespace, &manifest.catalog_item_id) {
+        let app_identifier = if let (Some(ns), Some(item_id)) =
+            (&manifest.catalog_namespace, &manifest.catalog_item_id)
+        {
             if !ns.is_empty() && !item_id.is_empty() {
                 format!("{}%3A{}%3A{}", ns, item_id, app_name)
             } else {
@@ -184,7 +188,10 @@ impl EpicScanner {
             app_name.clone()
         };
 
-        let launch_uri = format!("com.epicgames.launcher://apps/{}?action=launch&silent=true", app_identifier);
+        let launch_uri = format!(
+            "com.epicgames.launcher://apps/{}?action=launch&silent=true",
+            app_identifier
+        );
         let mut game = Game::new(&app_name, title, Platform::EpicGames, launch_uri);
         game.install_size = manifest.install_size;
         game.version = manifest.app_version_string;
@@ -217,15 +224,19 @@ mod tests {
 
     #[test]
     fn test_scan_epic_games() {
-        println!("Epic launcher path: {:?}", EpicScanner::find_epic_launcher_exe());
+        println!(
+            "Epic launcher path: {:?}",
+            EpicScanner::find_epic_launcher_exe()
+        );
         println!("Epic is running: {}", EpicScanner::is_launcher_running());
 
         let games = EpicScanner::scan_installed_games();
         println!("Epic Games encontradas: {}", games.len());
         for game in &games {
-            println!("- {} (Size: {:?}, Cover: {:?}, Ver: {:?}, Exe: {:?})", 
-                game.title, 
-                game.formatted_size(), 
+            println!(
+                "- {} (Size: {:?}, Cover: {:?}, Ver: {:?}, Exe: {:?})",
+                game.title,
+                game.formatted_size(),
                 game.cover_image_path,
                 game.version,
                 game.executable_path
@@ -233,4 +244,3 @@ mod tests {
         }
     }
 }
-

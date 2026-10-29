@@ -81,9 +81,9 @@ impl Game {
     }
 
     pub fn set_cover_path(&mut self, path: Option<PathBuf>) {
-        self.cover_uri = path.as_ref().map(|p| {
-            format!("file://{}", p.to_string_lossy().replace('\\', "/"))
-        });
+        self.cover_uri = path
+            .as_ref()
+            .map(|p| format!("file://{}", p.to_string_lossy().replace('\\', "/")));
         self.cover_image_path = path;
     }
 

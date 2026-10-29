@@ -68,13 +68,34 @@ impl SteamGridDbClient {
         };
 
         // 2. Fetch vertical grid poster (600x900)
-        let poster_url = self.fetch_top_image(&agent, api_key, &format!("https://www.steamgriddb.com/api/v2/grids/game/{}?dimensions=600x900", sgdb_game_id));
+        let poster_url = self.fetch_top_image(
+            &agent,
+            api_key,
+            &format!(
+                "https://www.steamgriddb.com/api/v2/grids/game/{}?dimensions=600x900",
+                sgdb_game_id
+            ),
+        );
 
         // 3. Fetch hero banner (background)
-        let hero_url = self.fetch_top_image(&agent, api_key, &format!("https://www.steamgriddb.com/api/v2/heroes/game/{}", sgdb_game_id));
+        let hero_url = self.fetch_top_image(
+            &agent,
+            api_key,
+            &format!(
+                "https://www.steamgriddb.com/api/v2/heroes/game/{}",
+                sgdb_game_id
+            ),
+        );
 
         // 4. Fetch transparent logo
-        let logo_url = self.fetch_top_image(&agent, api_key, &format!("https://www.steamgriddb.com/api/v2/logos/game/{}", sgdb_game_id));
+        let logo_url = self.fetch_top_image(
+            &agent,
+            api_key,
+            &format!(
+                "https://www.steamgriddb.com/api/v2/logos/game/{}",
+                sgdb_game_id
+            ),
+        );
 
         Some(SgdbArtBundle {
             poster_url,
@@ -99,7 +120,12 @@ impl SteamGridDbClient {
         resp.data?.into_iter().next().map(|g| g.id)
     }
 
-    fn fetch_top_image(&self, agent: &ureq::Agent, api_key: &str, endpoint: &str) -> Option<String> {
+    fn fetch_top_image(
+        &self,
+        agent: &ureq::Agent,
+        api_key: &str,
+        endpoint: &str,
+    ) -> Option<String> {
         let resp = agent
             .get(endpoint)
             .set("Authorization", &format!("Bearer {}", api_key))

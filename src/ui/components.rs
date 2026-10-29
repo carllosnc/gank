@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
-use eframe::egui::{self, Color32, Stroke};
 use crate::models::Platform;
 use crate::ui::theme::{colors, radii, typography};
+use eframe::egui::{self, Color32, Stroke};
 
 /// Componente de pílula de filtro navegacional normalizado com a paleta Tailwind Blue
 pub fn filter_pill(
@@ -26,11 +26,7 @@ pub fn filter_pill(
     }
     content.push_str(text);
 
-    let gallery = ui.painter().layout_no_wrap(
-        content,
-        font_id,
-        text_color,
-    );
+    let gallery = ui.painter().layout_no_wrap(content, font_id, text_color);
 
     let padding_x = 14.0;
     let desired_size = egui::vec2(gallery.size().x + padding_x * 2.0, 34.0);
@@ -56,12 +52,7 @@ pub fn filter_pill(
             Stroke::NONE
         };
 
-        ui.painter().rect(
-            rect,
-            radii::FULL,
-            bg_color,
-            stroke,
-        );
+        ui.painter().rect(rect, radii::FULL, bg_color, stroke);
 
         let text_pos = rect.center() - gallery.size() / 2.0;
         ui.painter().galley(text_pos, gallery, text_color);
@@ -91,11 +82,9 @@ pub fn filter_pill_image(
     };
 
     let (gallery, text_w) = if show_text {
-        let g = ui.painter().layout_no_wrap(
-            text.to_string(),
-            font_id,
-            text_color,
-        );
+        let g = ui
+            .painter()
+            .layout_no_wrap(text.to_string(), font_id, text_color);
         let w = g.size().x;
         (Some(g), w)
     } else {
@@ -104,7 +93,11 @@ pub fn filter_pill_image(
 
     let padding_x = if show_text { 14.0 } else { 8.0 };
     let icon_size = egui::vec2(18.0, 18.0);
-    let icon_spacing = if show_text && image.is_some() { 7.0 } else { 0.0 };
+    let icon_spacing = if show_text && image.is_some() {
+        7.0
+    } else {
+        0.0
+    };
 
     let total_content_w = if image.is_some() {
         icon_size.x + icon_spacing + text_w
@@ -144,12 +137,7 @@ pub fn filter_pill_image(
             Stroke::NONE
         };
 
-        ui.painter().rect(
-            rect,
-            radii::FULL,
-            bg_color,
-            stroke,
-        );
+        ui.painter().rect(rect, radii::FULL, bg_color, stroke);
 
         let mut content_x = rect.center().x - total_content_w / 2.0;
 
@@ -214,12 +202,7 @@ pub fn icon_button(ui: &mut egui::Ui, icon: &str, tooltip: &str) -> egui::Respon
             Stroke::new(1.0_f32, colors::BORDER_SUBTLE)
         };
 
-        ui.painter().rect(
-            rect,
-            radii::FULL,
-            bg_color,
-            stroke,
-        );
+        ui.painter().rect(rect, radii::FULL, bg_color, stroke);
 
         let icon_color = if is_hovered {
             colors::TEXT_PRIMARY
@@ -257,7 +240,9 @@ pub fn primary_button(
     };
 
     let font_id = typography::body_medium();
-    let gallery = ui.painter().layout_no_wrap(text, font_id, colors::TEXT_PRIMARY);
+    let gallery = ui
+        .painter()
+        .layout_no_wrap(text, font_id, colors::TEXT_PRIMARY);
 
     let w = width.unwrap_or(gallery.size().x + 36.0);
     let size = egui::vec2(w, 42.0);
@@ -283,7 +268,11 @@ pub fn primary_button(
         };
 
         ui.painter().rect(rect, radii::FULL, bg_color, stroke);
-        ui.painter().galley(rect.center() - gallery.size() / 2.0, gallery, colors::TEXT_PRIMARY);
+        ui.painter().galley(
+            rect.center() - gallery.size() / 2.0,
+            gallery,
+            colors::TEXT_PRIMARY,
+        );
     }
 
     if response.hovered() {
@@ -306,7 +295,9 @@ pub fn secondary_ghost_button(
     };
 
     let font_id = typography::body_medium();
-    let gallery = ui.painter().layout_no_wrap(text, font_id, colors::SLATE_100);
+    let gallery = ui
+        .painter()
+        .layout_no_wrap(text, font_id, colors::SLATE_100);
 
     let size = egui::vec2(gallery.size().x + 36.0, 42.0);
     let (rect, response) = ui.allocate_exact_size(size, egui::Sense::click());
@@ -334,7 +325,8 @@ pub fn secondary_ghost_button(
         };
 
         ui.painter().rect(rect, radii::FULL, bg_color, stroke);
-        ui.painter().galley(rect.center() - gallery.size() / 2.0, gallery, text_color);
+        ui.painter()
+            .galley(rect.center() - gallery.size() / 2.0, gallery, text_color);
     }
 
     if response.hovered() {
@@ -370,7 +362,10 @@ pub fn card_action_button(
         } else if is_btn_hovered {
             (
                 Color32::from_rgba_unmultiplied(37, 99, 235, alpha_u8), // Blue-600
-                Stroke::new(1.0_f32, Color32::from_rgba_unmultiplied(147, 197, 253, alpha_u8)),
+                Stroke::new(
+                    1.0_f32,
+                    Color32::from_rgba_unmultiplied(147, 197, 253, alpha_u8),
+                ),
                 Color32::from_rgba_unmultiplied(255, 255, 255, alpha_u8),
             )
         } else {
@@ -390,7 +385,10 @@ pub fn card_action_button(
         } else if is_btn_hovered {
             (
                 Color32::from_rgba_unmultiplied(30, 41, 59, alpha_u8),
-                Stroke::new(1.0_f32, Color32::from_rgba_unmultiplied(96, 165, 250, alpha_u8)),
+                Stroke::new(
+                    1.0_f32,
+                    Color32::from_rgba_unmultiplied(96, 165, 250, alpha_u8),
+                ),
                 Color32::from_rgba_unmultiplied(255, 255, 255, alpha_u8),
             )
         } else {
@@ -413,12 +411,7 @@ pub fn card_action_button(
         );
     }
 
-    ui.painter().rect(
-        rect,
-        radii::FULL,
-        bg_color,
-        stroke,
-    );
+    ui.painter().rect(rect, radii::FULL, bg_color, stroke);
 
     let font_id = typography::body_medium();
     let full_text = format!("{}  {}", icon, label);
@@ -459,13 +452,19 @@ pub fn card_icon_button(
     } else if is_btn_hovered {
         (
             Color32::from_rgba_unmultiplied(35, 45, 65, alpha_u8),
-            Stroke::new(1.0_f32, Color32::from_rgba_unmultiplied(147, 197, 253, alpha_u8)),
+            Stroke::new(
+                1.0_f32,
+                Color32::from_rgba_unmultiplied(147, 197, 253, alpha_u8),
+            ),
             Color32::from_rgba_unmultiplied(255, 255, 255, alpha_u8),
         )
     } else {
         (
             Color32::from_rgba_unmultiplied(18, 22, 32, (alpha_u8 as f32 * 0.9) as u8),
-            Stroke::new(1.0_f32, Color32::from_rgba_unmultiplied(255, 255, 255, (25.0 * hover_alpha) as u8)),
+            Stroke::new(
+                1.0_f32,
+                Color32::from_rgba_unmultiplied(255, 255, 255, (25.0 * hover_alpha) as u8),
+            ),
             Color32::from_rgba_unmultiplied(220, 226, 238, alpha_u8),
         )
     };
@@ -505,7 +504,9 @@ pub fn badge(ui: &mut egui::Ui, text: &str, icon: Option<&str>) {
     } else {
         text.to_string()
     };
-    let gallery = ui.painter().layout_no_wrap(display_text, font, colors::SLATE_200);
+    let gallery = ui
+        .painter()
+        .layout_no_wrap(display_text, font, colors::SLATE_200);
     let size = egui::vec2(gallery.size().x + 20.0, 28.0);
     let (rect, _) = ui.allocate_exact_size(size, egui::Sense::hover());
 
@@ -515,7 +516,11 @@ pub fn badge(ui: &mut egui::Ui, text: &str, icon: Option<&str>) {
         colors::SURFACE_GLASS,
         Stroke::new(1.0_f32, colors::BORDER_SUBTLE),
     );
-    ui.painter().galley(rect.center() - gallery.size() / 2.0, gallery, colors::SLATE_200);
+    ui.painter().galley(
+        rect.center() - gallery.size() / 2.0,
+        gallery,
+        colors::SLATE_200,
+    );
 }
 
 /// Badge de plataforma com estilo normalizado padrão
@@ -533,23 +538,12 @@ pub fn genre_pill(ui: &mut egui::Ui, genre: &str) {
 /// Linha métrica sem wrapper box (utilizada no Showcase e nas páginas dos jogos)
 /// Layout: Ícone branco ampliado (30px) perfeitamente centralizado na vertical à esquerda,
 /// com Caption acima do Texto principal à direita.
-pub fn stat_item(
-    ui: &mut egui::Ui,
-    icon: &str,
-    label: &str,
-    value: &str,
-) {
+pub fn stat_item(ui: &mut egui::Ui, icon: &str, label: &str, value: &str) {
     stat_item_alpha(ui, icon, label, value, 255);
 }
 
 /// Versão com suporte a controle de opacidade (alpha_u8) para animação de transição da página de detalhes
-pub fn stat_item_alpha(
-    ui: &mut egui::Ui,
-    icon: &str,
-    label: &str,
-    value: &str,
-    alpha_u8: u8,
-) {
+pub fn stat_item_alpha(ui: &mut egui::Ui, icon: &str, label: &str, value: &str, alpha_u8: u8) {
     ui.horizontal(|ui| {
         ui.spacing_mut().item_spacing = egui::vec2(14.0, 0.0);
 
@@ -603,7 +597,10 @@ pub fn stat_card(
             rect,
             radii::MD,
             Color32::from_rgba_unmultiplied(15, 23, 42, (200.0 * factor) as u8),
-            Stroke::new(1.0_f32, Color32::from_rgba_unmultiplied(255, 255, 255, (20.0 * factor) as u8)),
+            Stroke::new(
+                1.0_f32,
+                Color32::from_rgba_unmultiplied(255, 255, 255, (20.0 * factor) as u8),
+            ),
         );
 
         // Ícone
@@ -612,7 +609,12 @@ pub fn stat_card(
             egui::Align2::LEFT_CENTER,
             icon,
             typography::title_large(),
-            Color32::from_rgba_unmultiplied(icon_color.r(), icon_color.g(), icon_color.b(), alpha_u8),
+            Color32::from_rgba_unmultiplied(
+                icon_color.r(),
+                icon_color.g(),
+                icon_color.b(),
+                alpha_u8,
+            ),
         );
 
         // Label em caixa alta
@@ -622,7 +624,12 @@ pub fn stat_card(
             egui::Align2::LEFT_CENTER,
             label,
             typography::caption(),
-            Color32::from_rgba_unmultiplied(colors::SLATE_400.r(), colors::SLATE_400.g(), colors::SLATE_400.b(), alpha_u8),
+            Color32::from_rgba_unmultiplied(
+                colors::SLATE_400.r(),
+                colors::SLATE_400.g(),
+                colors::SLATE_400.b(),
+                alpha_u8,
+            ),
         );
 
         let disp_val = if value.len() > 18 {
@@ -663,7 +670,11 @@ pub fn close_button(ui: &mut egui::Ui) -> egui::Response {
         egui::Align2::CENTER_CENTER,
         egui_phosphor::regular::X,
         typography::title_medium(),
-        if is_h { colors::TEXT_PRIMARY } else { colors::SLATE_300 },
+        if is_h {
+            colors::TEXT_PRIMARY
+        } else {
+            colors::SLATE_300
+        },
     );
 
     if is_h {
@@ -675,13 +686,7 @@ pub fn close_button(ui: &mut egui::Ui) -> egui::Response {
 
 /// Swatch card para exibir cada cor do Tailwind na galeria do Design System.
 #[allow(dead_code)]
-pub fn color_swatch(
-    ui: &mut egui::Ui,
-    name: &str,
-    hex: &str,
-    color: Color32,
-    role: &str,
-) {
+pub fn color_swatch(ui: &mut egui::Ui, name: &str, hex: &str, color: Color32, role: &str) {
     let width = 295.0;
     let height = 44.0;
     let (rect, _) = ui.allocate_exact_size(egui::vec2(width, height), egui::Sense::hover());
@@ -740,11 +745,7 @@ pub fn color_swatch(
 
 /// Campo de busca integrado com ícone de lupa, hint e botão de limpar
 #[allow(dead_code)]
-pub fn search_input(
-    ui: &mut egui::Ui,
-    query: &mut String,
-    width: f32,
-) -> egui::Response {
+pub fn search_input(ui: &mut egui::Ui, query: &mut String, width: f32) -> egui::Response {
     let desired_size = egui::vec2(width, 34.0);
     let (rect, response) = ui.allocate_exact_size(desired_size, egui::Sense::hover());
 
@@ -778,7 +779,11 @@ pub fn search_input(
             egui::Align2::CENTER_CENTER,
             egui_phosphor::regular::MAGNIFYING_GLASS,
             egui::FontId::proportional(15.0),
-            if has_focus { colors::BLUE_400 } else { colors::TEXT_MUTED },
+            if has_focus {
+                colors::BLUE_400
+            } else {
+                colors::TEXT_MUTED
+            },
         );
 
         // Botão de limpar à direita (X) quando há texto
@@ -788,11 +793,19 @@ pub fn search_input(
                 egui::pos2(rect.max.x - 16.0, rect.center().y),
                 egui::vec2(20.0, 20.0),
             );
-            let clear_resp = ui.interact(clear_rect, response.id.with("clear_search_btn"), egui::Sense::click());
+            let clear_resp = ui.interact(
+                clear_rect,
+                response.id.with("clear_search_btn"),
+                egui::Sense::click(),
+            );
             if clear_resp.clicked() {
                 query.clear();
             }
-            let clear_color = if clear_resp.hovered() { Color32::WHITE } else { colors::TEXT_MUTED };
+            let clear_color = if clear_resp.hovered() {
+                Color32::WHITE
+            } else {
+                colors::TEXT_MUTED
+            };
             ui.painter().text(
                 clear_rect.center(),
                 egui::Align2::CENTER_CENTER,
@@ -816,11 +829,20 @@ pub fn search_input(
         child_ui.style_mut().visuals.widgets.hovered.bg_stroke = Stroke::NONE;
         child_ui.style_mut().visuals.widgets.active.bg_stroke = Stroke::NONE;
         child_ui.style_mut().visuals.widgets.inactive.bg_stroke = Stroke::NONE;
-        child_ui.style_mut().visuals.widgets.noninteractive.bg_stroke = Stroke::NONE;
+        child_ui
+            .style_mut()
+            .visuals
+            .widgets
+            .noninteractive
+            .bg_stroke = Stroke::NONE;
 
         let edit = egui::TextEdit::singleline(query)
             .id(edit_id)
-            .hint_text(egui::RichText::new("Buscar... (Ctrl+F)").color(colors::TEXT_MUTED).size(13.0))
+            .hint_text(
+                egui::RichText::new("Buscar... (Ctrl+F)")
+                    .color(colors::TEXT_MUTED)
+                    .size(13.0),
+            )
             .text_color(colors::TEXT_PRIMARY)
             .font(typography::body_medium())
             .frame(false)

@@ -68,9 +68,14 @@ impl BattleNetScanner {
                 if let Ok(parent) = hklm.open_subkey_with_flags(uninstall_root, KEY_READ) {
                     for key_name in parent.enum_keys().flatten() {
                         if let Ok(sub) = parent.open_subkey_with_flags(&key_name, KEY_READ) {
-                            let publisher = sub.get_value::<String, _>("Publisher").unwrap_or_default();
-                            let display_name = sub.get_value::<String, _>("DisplayName").unwrap_or_default();
-                            let install_loc = sub.get_value::<String, _>("InstallLocation").unwrap_or_default();
+                            let publisher =
+                                sub.get_value::<String, _>("Publisher").unwrap_or_default();
+                            let display_name = sub
+                                .get_value::<String, _>("DisplayName")
+                                .unwrap_or_default();
+                            let install_loc = sub
+                                .get_value::<String, _>("InstallLocation")
+                                .unwrap_or_default();
 
                             let is_blizzard = publisher.to_lowercase().contains("blizzard")
                                 || Self::is_known_blizzard_title(&display_name);
@@ -144,7 +149,7 @@ impl BattleNetScanner {
             }
         }
 
-        games.sort_by(|a, b| a.title.to_lowercase().cmp(&b.title.to_lowercase()));
+        games.sort_by_key(|a| a.title.to_lowercase());
         games
     }
 
@@ -193,7 +198,11 @@ impl BattleNetScanner {
                 if p.is_file() {
                     if let Some(ext) = p.extension().and_then(|s| s.to_str()) {
                         if ext.eq_ignore_ascii_case("exe") {
-                            let name = p.file_name().and_then(|n| n.to_str()).unwrap_or("").to_lowercase();
+                            let name = p
+                                .file_name()
+                                .and_then(|n| n.to_str())
+                                .unwrap_or("")
+                                .to_lowercase();
                             if !name.starts_with("unins")
                                 && !name.contains("cleanup")
                                 && !name.contains("installer")
@@ -225,9 +234,21 @@ mod tests {
 
     #[test]
     fn test_battlenet_product_code_mappings() {
-        assert_eq!(BattleNetScanner::map_title_to_product_code("Overwatch 2"), "Pro");
-        assert_eq!(BattleNetScanner::map_title_to_product_code("Diablo IV"), "Fenris");
-        assert_eq!(BattleNetScanner::map_title_to_product_code("Hearthstone"), "WTCG");
-        assert_eq!(BattleNetScanner::map_title_to_product_code("StarCraft II"), "S2");
+        assert_eq!(
+            BattleNetScanner::map_title_to_product_code("Overwatch 2"),
+            "Pro"
+        );
+        assert_eq!(
+            BattleNetScanner::map_title_to_product_code("Diablo IV"),
+            "Fenris"
+        );
+        assert_eq!(
+            BattleNetScanner::map_title_to_product_code("Hearthstone"),
+            "WTCG"
+        );
+        assert_eq!(
+            BattleNetScanner::map_title_to_product_code("StarCraft II"),
+            "S2"
+        );
     }
 }

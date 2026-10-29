@@ -3,12 +3,12 @@
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
-mod models;
-mod scanners;
-mod ui;
 pub mod artwork;
 pub mod config;
 pub mod metadata;
+mod models;
+mod scanners;
+mod ui;
 
 use ui::GankApp;
 
@@ -47,20 +47,20 @@ fn init_windows_app_id() {
     }
 }
 
-
-
 fn main() -> eframe::Result<()> {
     #[cfg(windows)]
     init_windows_app_id();
 
-    let mut wgpu_options = eframe::egui_wgpu::WgpuConfiguration::default();
-    wgpu_options.present_mode = eframe::wgpu::PresentMode::Fifo;
-    wgpu_options.power_preference = eframe::wgpu::PowerPreference::LowPower;
-    wgpu_options.supported_backends = eframe::wgpu::Backends::DX12 | eframe::wgpu::Backends::VULKAN;
-    wgpu_options.on_surface_error = std::sync::Arc::new(|err| {
-        eprintln!("Wgpu surface error: {:?}", err);
-        eframe::egui_wgpu::SurfaceErrorAction::RecreateSurface
-    });
+    let wgpu_options = eframe::egui_wgpu::WgpuConfiguration {
+        present_mode: eframe::wgpu::PresentMode::Fifo,
+        power_preference: eframe::wgpu::PowerPreference::LowPower,
+        supported_backends: eframe::wgpu::Backends::DX12 | eframe::wgpu::Backends::VULKAN,
+        on_surface_error: std::sync::Arc::new(|err| {
+            eprintln!("Wgpu surface error: {:?}", err);
+            eframe::egui_wgpu::SurfaceErrorAction::RecreateSurface
+        }),
+        ..Default::default()
+    };
 
     let mut viewport = eframe::egui::ViewportBuilder::default()
         .with_inner_size([980.0, 680.0])

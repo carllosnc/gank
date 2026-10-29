@@ -109,7 +109,7 @@ impl UbisoftScanner {
             }
         }
 
-        games.sort_by(|a, b| a.title.to_lowercase().cmp(&b.title.to_lowercase()));
+        games.sort_by_key(|a| a.title.to_lowercase());
         games
     }
 
@@ -120,8 +120,14 @@ impl UbisoftScanner {
 
         // 1. Try Windows Uninstall registry: "Uplay Install <id>"
         let uninstall_paths = [
-            format!(r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Uplay Install {}", game_id),
-            format!(r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Uplay Install {}", game_id),
+            format!(
+                r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Uplay Install {}",
+                game_id
+            ),
+            format!(
+                r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Uplay Install {}",
+                game_id
+            ),
         ];
 
         for u_path in uninstall_paths {
@@ -159,7 +165,11 @@ impl UbisoftScanner {
                 if p.is_file() {
                     if let Some(ext) = p.extension().and_then(|s| s.to_str()) {
                         if ext.eq_ignore_ascii_case("exe") {
-                            let name = p.file_name().and_then(|n| n.to_str()).unwrap_or("").to_lowercase();
+                            let name = p
+                                .file_name()
+                                .and_then(|n| n.to_str())
+                                .unwrap_or("")
+                                .to_lowercase();
                             if !name.starts_with("unins")
                                 && !name.contains("crash")
                                 && !name.contains("report")

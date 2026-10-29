@@ -76,7 +76,10 @@ const KNOWN_EMULATORS: &[KnownEmulator] = &[
     KnownEmulator {
         id: "duckstation",
         name: "DuckStation (PlayStation 1)",
-        executable_names: &["duckstation-qt-x64-ReleaseLTCG.exe", "duckstation-nogui-x64-ReleaseLTCG.exe"],
+        executable_names: &[
+            "duckstation-qt-x64-ReleaseLTCG.exe",
+            "duckstation-nogui-x64-ReleaseLTCG.exe",
+        ],
         candidate_paths: &[
             r"C:\DuckStation\duckstation-qt-x64-ReleaseLTCG.exe",
             r"C:\Program Files\DuckStation\duckstation-qt-x64-ReleaseLTCG.exe",
@@ -99,10 +102,7 @@ const KNOWN_EMULATORS: &[KnownEmulator] = &[
         id: "ryujinx",
         name: "Ryujinx (Switch)",
         executable_names: &["Ryujinx.exe"],
-        candidate_paths: &[
-            r"C:\Ryujinx\Ryujinx.exe",
-            r"D:\Ryujinx\Ryujinx.exe",
-        ],
+        candidate_paths: &[r"C:\Ryujinx\Ryujinx.exe", r"D:\Ryujinx\Ryujinx.exe"],
         supported_extensions: &["nsp", "xci"],
     },
 ];
@@ -140,11 +140,16 @@ impl EmulatorScanner {
         let rom_directories = Self::get_standard_rom_dirs();
         for rom_dir in rom_directories {
             if rom_dir.exists() && rom_dir.is_dir() {
-                Self::scan_rom_directory(&rom_dir, &detected_emulators, &mut seen_ids, &mut results);
+                Self::scan_rom_directory(
+                    &rom_dir,
+                    &detected_emulators,
+                    &mut seen_ids,
+                    &mut results,
+                );
             }
         }
 
-        results.sort_by(|a, b| a.title.to_lowercase().cmp(&b.title.to_lowercase()));
+        results.sort_by_key(|a| a.title.to_lowercase());
         results
     }
 
@@ -199,7 +204,9 @@ impl EmulatorScanner {
         seen_ids: &mut HashSet<String>,
         results: &mut Vec<Game>,
     ) {
-        let Ok(entries) = std::fs::read_dir(dir) else { return };
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
 
         for entry in entries.flatten() {
             let path = entry.path();
@@ -209,7 +216,11 @@ impl EmulatorScanner {
                     if Self::is_rom_extension(&ext_lower) {
                         let file_stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
                         let title = Self::clean_rom_title(file_stem);
-                        let id = format!("rom_{}_{}", ext_lower, title.to_lowercase().replace(' ', "_"));
+                        let id = format!(
+                            "rom_{}_{}",
+                            ext_lower,
+                            title.to_lowercase().replace(' ', "_")
+                        );
 
                         if !seen_ids.contains(&id) && !title.is_empty() {
                             seen_ids.insert(id.clone());
@@ -220,17 +231,16 @@ impl EmulatorScanner {
                             });
 
                             let launch_uri = if let Some((_, exe_path)) = matching_emu {
-                                format!("\"{}\" \"{}\"", exe_path.to_string_lossy(), path.to_string_lossy())
+                                format!(
+                                    "\"{}\" \"{}\"",
+                                    exe_path.to_string_lossy(),
+                                    path.to_string_lossy()
+                                )
                             } else {
                                 path.to_string_lossy().to_string()
                             };
 
-                            let mut game = Game::new(
-                                id,
-                                title,
-                                Platform::Emulator,
-                                launch_uri,
-                            );
+                            let mut game = Game::new(id, title, Platform::Emulator, launch_uri);
 
                             game.install_dir = path.parent().map(|p| p.to_path_buf());
                             game.install_size = path.metadata().ok().map(|m| m.len());
@@ -247,9 +257,14 @@ impl EmulatorScanner {
                             if let Some(ext) = sub_path.extension().and_then(|e| e.to_str()) {
                                 let ext_lower = ext.to_lowercase();
                                 if Self::is_rom_extension(&ext_lower) {
-                                    let file_stem = sub_path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
+                                    let file_stem =
+                                        sub_path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
                                     let title = Self::clean_rom_title(file_stem);
-                                    let id = format!("rom_{}_{}", ext_lower, title.to_lowercase().replace(' ', "_"));
+                                    let id = format!(
+                                        "rom_{}_{}",
+                                        ext_lower,
+                                        title.to_lowercase().replace(' ', "_")
+                                    );
 
                                     if !seen_ids.contains(&id) && !title.is_empty() {
                                         seen_ids.insert(id.clone());
@@ -259,20 +274,22 @@ impl EmulatorScanner {
                                         });
 
                                         let launch_uri = if let Some((_, exe_path)) = matching_emu {
-                                            format!("\"{}\" \"{}\"", exe_path.to_string_lossy(), sub_path.to_string_lossy())
+                                            format!(
+                                                "\"{}\" \"{}\"",
+                                                exe_path.to_string_lossy(),
+                                                sub_path.to_string_lossy()
+                                            )
                                         } else {
                                             sub_path.to_string_lossy().to_string()
                                         };
 
-                                        let mut game = Game::new(
-                                            id,
-                                            title,
-                                            Platform::Emulator,
-                                            launch_uri,
-                                        );
+                                        let mut game =
+                                            Game::new(id, title, Platform::Emulator, launch_uri);
 
-                                        game.install_dir = sub_path.parent().map(|p| p.to_path_buf());
-                                        game.install_size = sub_path.metadata().ok().map(|m| m.len());
+                                        game.install_dir =
+                                            sub_path.parent().map(|p| p.to_path_buf());
+                                        game.install_size =
+                                            sub_path.metadata().ok().map(|m| m.len());
                                         results.push(game);
                                     }
                                 }
@@ -287,8 +304,23 @@ impl EmulatorScanner {
     fn is_rom_extension(ext: &str) -> bool {
         matches!(
             ext,
-            "iso" | "chd" | "rvz" | "cso" | "wbfs" | "nes" | "sfc" | "smc" | "gba" | "gb"
-                | "gbc" | "n64" | "z64" | "pkg" | "nsp" | "xci" | "wua"
+            "iso"
+                | "chd"
+                | "rvz"
+                | "cso"
+                | "wbfs"
+                | "nes"
+                | "sfc"
+                | "smc"
+                | "gba"
+                | "gb"
+                | "gbc"
+                | "n64"
+                | "z64"
+                | "pkg"
+                | "nsp"
+                | "xci"
+                | "wua"
         )
     }
 
@@ -333,7 +365,9 @@ mod tests {
             "Super Mario World"
         );
         assert_eq!(
-            EmulatorScanner::clean_rom_title("The Legend of Zelda - Ocarina of Time (Europe) (En,Fr,De)"),
+            EmulatorScanner::clean_rom_title(
+                "The Legend of Zelda - Ocarina of Time (Europe) (En,Fr,De)"
+            ),
             "The Legend of Zelda - Ocarina of Time"
         );
     }

@@ -2,9 +2,9 @@ use crate::models::{Game, Platform};
 use crate::scanners::battlenet::BattleNetScanner;
 use crate::scanners::ea::EaScanner;
 use crate::scanners::epic::EpicScanner;
+use crate::scanners::scan_all_platforms;
 use crate::scanners::steam::SteamScanner;
 use crate::scanners::ubisoft::UbisoftScanner;
-use crate::scanners::scan_all_platforms;
 use eframe::egui;
 use std::sync::mpsc::{channel, Receiver, Sender};
 
@@ -112,12 +112,36 @@ fn paint_card_bottom_scrim(
     let x_left_r = rect.min.x + rounding_bottom;
     let x_right_r = rect.max.x - rounding_bottom;
 
-    let add_quad = |m: &mut egui::Mesh, p0: egui::Pos2, p1: egui::Pos2, p2: egui::Pos2, p3: egui::Pos2, c0: egui::Color32, c1: egui::Color32, c2: egui::Color32, c3: egui::Color32| {
+    let add_quad = |m: &mut egui::Mesh,
+                    p0: egui::Pos2,
+                    p1: egui::Pos2,
+                    p2: egui::Pos2,
+                    p3: egui::Pos2,
+                    c0: egui::Color32,
+                    c1: egui::Color32,
+                    c2: egui::Color32,
+                    c3: egui::Color32| {
         let base = m.vertices.len() as u32;
-        m.vertices.push(egui::epaint::Vertex { pos: p0, uv: egui::epaint::WHITE_UV, color: c0 });
-        m.vertices.push(egui::epaint::Vertex { pos: p1, uv: egui::epaint::WHITE_UV, color: c1 });
-        m.vertices.push(egui::epaint::Vertex { pos: p2, uv: egui::epaint::WHITE_UV, color: c2 });
-        m.vertices.push(egui::epaint::Vertex { pos: p3, uv: egui::epaint::WHITE_UV, color: c3 });
+        m.vertices.push(egui::epaint::Vertex {
+            pos: p0,
+            uv: egui::epaint::WHITE_UV,
+            color: c0,
+        });
+        m.vertices.push(egui::epaint::Vertex {
+            pos: p1,
+            uv: egui::epaint::WHITE_UV,
+            color: c1,
+        });
+        m.vertices.push(egui::epaint::Vertex {
+            pos: p2,
+            uv: egui::epaint::WHITE_UV,
+            color: c2,
+        });
+        m.vertices.push(egui::epaint::Vertex {
+            pos: p3,
+            uv: egui::epaint::WHITE_UV,
+            color: c3,
+        });
         m.add_triangle(base, base + 1, base + 2);
         m.add_triangle(base, base + 2, base + 3);
     };
@@ -163,13 +187,26 @@ fn paint_card_bottom_scrim(
 
     // Cantos arredondados na base (y3 -> y4):
     let diag = rounding_bottom * 0.293;
-    let add_tri = |m: &mut egui::Mesh, p0: egui::Pos2, p1: egui::Pos2, p2: egui::Pos2, c: egui::Color32| {
-        let base = m.vertices.len() as u32;
-        m.vertices.push(egui::epaint::Vertex { pos: p0, uv: egui::epaint::WHITE_UV, color: c });
-        m.vertices.push(egui::epaint::Vertex { pos: p1, uv: egui::epaint::WHITE_UV, color: c });
-        m.vertices.push(egui::epaint::Vertex { pos: p2, uv: egui::epaint::WHITE_UV, color: c });
-        m.add_triangle(base, base + 1, base + 2);
-    };
+    let add_tri =
+        |m: &mut egui::Mesh, p0: egui::Pos2, p1: egui::Pos2, p2: egui::Pos2, c: egui::Color32| {
+            let base = m.vertices.len() as u32;
+            m.vertices.push(egui::epaint::Vertex {
+                pos: p0,
+                uv: egui::epaint::WHITE_UV,
+                color: c,
+            });
+            m.vertices.push(egui::epaint::Vertex {
+                pos: p1,
+                uv: egui::epaint::WHITE_UV,
+                color: c,
+            });
+            m.vertices.push(egui::epaint::Vertex {
+                pos: p2,
+                uv: egui::epaint::WHITE_UV,
+                color: c,
+            });
+            m.add_triangle(base, base + 1, base + 2);
+        };
 
     // Canto inferior direito
     let p_br_c = egui::pos2(x_right_r, y3);
@@ -221,7 +258,11 @@ pub fn trim_working_set() {
     #[link(name = "kernel32")]
     extern "system" {
         fn GetCurrentProcess() -> isize;
-        fn SetProcessWorkingSetSize(hProcess: isize, dwMinimumWorkingSetSize: usize, dwMaximumWorkingSetSize: usize) -> i32;
+        fn SetProcessWorkingSetSize(
+            hProcess: isize,
+            dwMinimumWorkingSetSize: usize,
+            dwMaximumWorkingSetSize: usize,
+        ) -> i32;
     }
     unsafe {
         let handle = GetCurrentProcess();
@@ -271,7 +312,11 @@ impl Default for GankApp {
         // Dispatch asynchronous pre-warming of cover textures in background
         let covers_to_load: Vec<(String, std::path::PathBuf)> = games
             .iter()
-            .filter_map(|g| g.cover_image_path.as_ref().map(|p| (g.id.clone(), p.clone())))
+            .filter_map(|g| {
+                g.cover_image_path
+                    .as_ref()
+                    .map(|p| (g.id.clone(), p.clone()))
+            })
             .collect();
 
         let tx = tex_load_tx.clone();
@@ -322,7 +367,11 @@ impl GankApp {
         const GIB: f64 = 1024.0 * 1024.0 * 1024.0;
         let gib = total_bytes as f64 / GIB;
         self.cached_storage_text = format!("{} {:.1} GB", egui_phosphor::regular::HARD_DRIVES, gib);
-        self.cached_count_text = format!("{} {} jogos instalados", egui_phosphor::regular::GAME_CONTROLLER, self.games.len());
+        self.cached_count_text = format!(
+            "{} {} jogos instalados",
+            egui_phosphor::regular::GAME_CONTROLLER,
+            self.games.len()
+        );
     }
 
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
@@ -395,7 +444,8 @@ impl GankApp {
                     let title = game.title.clone();
                     let uri = game.launch_uri.clone();
 
-                    self.status_message = Some("Iniciando Epic Games em segundo plano...".to_string());
+                    self.status_message =
+                        Some("Iniciando Epic Games em segundo plano...".to_string());
 
                     std::thread::spawn(move || {
                         let mut cmd = std::process::Command::new(&launcher_exe);
@@ -450,7 +500,8 @@ impl GankApp {
                     let title = game.title.clone();
                     let uri = game.launch_uri.clone();
 
-                    self.status_message = Some("Iniciando Ubisoft Connect em segundo plano...".to_string());
+                    self.status_message =
+                        Some("Iniciando Ubisoft Connect em segundo plano...".to_string());
 
                     std::thread::spawn(move || {
                         let mut cmd = std::process::Command::new(&launcher_exe);
@@ -496,7 +547,8 @@ impl GankApp {
                     let title = game.title.clone();
                     let uri = game.launch_uri.clone();
 
-                    self.status_message = Some("Iniciando Battle.net em segundo plano...".to_string());
+                    self.status_message =
+                        Some("Iniciando Battle.net em segundo plano...".to_string());
 
                     std::thread::spawn(move || {
                         let mut cmd = std::process::Command::new(&launcher_exe);
@@ -684,12 +736,16 @@ impl eframe::App for GankApp {
                 egui::Frame::none()
                     .fill(egui::Color32::TRANSPARENT)
                     .stroke(egui::Stroke::NONE)
-                    .inner_margin(egui::Margin::symmetric(crate::ui::theme::spacing::PAGE_PADDING_X, 16.0)),
+                    .inner_margin(egui::Margin::symmetric(
+                        crate::ui::theme::spacing::PAGE_PADDING_X,
+                        16.0,
+                    )),
             )
             .show(ctx, |ui| {
                 let total_width = ui.available_width();
                 let bar_h = 34.0;
-                let bar_rect = egui::Rect::from_min_size(ui.cursor().min, egui::vec2(total_width, bar_h));
+                let bar_rect =
+                    egui::Rect::from_min_size(ui.cursor().min, egui::vec2(total_width, bar_h));
 
                 // Breakpoint: Below 1100px, collapse pills into compact icon badges so they never crowd the header
                 let is_compact = total_width < 1100.0;
@@ -710,7 +766,11 @@ impl eframe::App for GankApp {
                         let size = [rgba.width() as usize, rgba.height() as usize];
                         let pixels = rgba.into_raw();
                         let color_image = egui::ColorImage::from_rgba_unmultiplied(size, &pixels);
-                        self.logo_texture = Some(ctx.load_texture("top_logo", color_image, egui::TextureOptions::LINEAR));
+                        self.logo_texture = Some(ctx.load_texture(
+                            "top_logo",
+                            color_image,
+                            egui::TextureOptions::LINEAR,
+                        ));
                     }
                 }
 
@@ -732,19 +792,27 @@ impl eframe::App for GankApp {
                 ui.allocate_rect(bar_rect, egui::Sense::hover());
 
                 // RENDER RIGHT ACTIONS (Fixed right anchor)
-                let mut right_ui = ui.child_ui(right_rect, egui::Layout::right_to_left(egui::Align::Center));
+                let mut right_ui =
+                    ui.child_ui(right_rect, egui::Layout::right_to_left(egui::Align::Center));
 
                 // 1. Refresh Button
                 if crate::ui::components::icon_button(
                     &mut right_ui,
                     egui_phosphor::regular::ARROWS_CLOCKWISE,
                     "Atualizar biblioteca",
-                ).clicked() {
+                )
+                .clicked()
+                {
                     self.games = scan_all_platforms();
                     self.update_cached_stats();
-                    let covers_to_load: Vec<(String, std::path::PathBuf)> = self.games
+                    let covers_to_load: Vec<(String, std::path::PathBuf)> = self
+                        .games
                         .iter()
-                        .filter_map(|g| g.cover_image_path.as_ref().map(|p| (g.id.clone(), p.clone())))
+                        .filter_map(|g| {
+                            g.cover_image_path
+                                .as_ref()
+                                .map(|p| (g.id.clone(), p.clone()))
+                        })
                         .collect();
                     let tx = self.tex_load_tx.clone();
                     std::thread::spawn(move || {
@@ -761,9 +829,11 @@ impl eframe::App for GankApp {
                 }
 
                 // RENDER LEFT BRAND (Fixed left anchor: small official Gank logo fitting top bar)
-                let mut left_ui = ui.child_ui(left_rect, egui::Layout::left_to_right(egui::Align::Center));
+                let mut left_ui =
+                    ui.child_ui(left_rect, egui::Layout::left_to_right(egui::Align::Center));
                 if let Some(tex) = &self.logo_texture {
-                    let (logo_rect, resp) = left_ui.allocate_exact_size(egui::vec2(65.0, 18.0), egui::Sense::click());
+                    let (logo_rect, resp) =
+                        left_ui.allocate_exact_size(egui::vec2(65.0, 18.0), egui::Sense::click());
                     let logo_img = egui::Image::new(tex).fit_to_exact_size(egui::vec2(65.0, 18.0));
                     logo_img.paint_at(&left_ui, logo_rect);
                     if resp.hovered() {
@@ -783,17 +853,29 @@ impl eframe::App for GankApp {
                 }
 
                 // RENDER MIDDLE FILTERS (Strictly clipped & scrollable inside middle_rect)
-                let mut middle_ui = ui.child_ui(middle_rect, egui::Layout::left_to_right(egui::Align::Center));
+                let mut middle_ui = ui.child_ui(
+                    middle_rect,
+                    egui::Layout::left_to_right(egui::Align::Center),
+                );
                 middle_ui.set_clip_rect(middle_rect);
 
                 egui::ScrollArea::horizontal()
                     .scroll_bar_visibility(egui::scroll_area::ScrollBarVisibility::AlwaysHidden)
                     .auto_shrink([true, false])
                     .show(&mut middle_ui, |ui| {
-                        ui.spacing_mut().item_spacing = egui::vec2(if is_compact { 6.0 } else { 10.0 }, 0.0);
+                        ui.spacing_mut().item_spacing =
+                            egui::vec2(if is_compact { 6.0 } else { 10.0 }, 0.0);
 
                         let all_selected = self.selected_platform.is_none();
-                        if crate::ui::components::filter_pill_image(ui, all_selected, "Todos", None, true).clicked() {
+                        if crate::ui::components::filter_pill_image(
+                            ui,
+                            all_selected,
+                            "Todos",
+                            None,
+                            true,
+                        )
+                        .clicked()
+                        {
                             self.selected_platform = None;
                             self.reveal_start_time = Some(std::time::Instant::now());
                         }
@@ -803,8 +885,16 @@ impl eframe::App for GankApp {
                             (Platform::EpicGames, "Epic", crate::ui::icons::EPIC_ICON),
                             (Platform::Ubisoft, "Ubisoft", crate::ui::icons::UBISOFT_ICON),
                             (Platform::Ea, "EA", crate::ui::icons::EA_ICON),
-                            (Platform::BattleNet, "Blizzard", crate::ui::icons::BATTLENET_ICON),
-                            (Platform::Emulator, "Emuladores", crate::ui::icons::RETROARCH_ICON),
+                            (
+                                Platform::BattleNet,
+                                "Blizzard",
+                                crate::ui::icons::BATTLENET_ICON,
+                            ),
+                            (
+                                Platform::Emulator,
+                                "Emuladores",
+                                crate::ui::icons::RETROARCH_ICON,
+                            ),
                             (Platform::Gog, "GOG", crate::ui::icons::GOG_ICON),
                             (Platform::Xbox, "Xbox", crate::ui::icons::XBOX_ICON),
                         ];
@@ -819,8 +909,11 @@ impl eframe::App for GankApp {
                                     label,
                                     Some(icon),
                                     show_pill_text,
-                                ).clicked() {
-                                    self.selected_platform = if is_selected { None } else { Some(plat) };
+                                )
+                                .clicked()
+                                {
+                                    self.selected_platform =
+                                        if is_selected { None } else { Some(plat) };
                                     self.reveal_start_time = Some(std::time::Instant::now());
                                 }
                             }
@@ -835,7 +928,10 @@ impl eframe::App for GankApp {
                 egui::Frame::none()
                     .fill(egui::Color32::from_black_alpha(77))
                     .stroke(egui::Stroke::NONE)
-                    .inner_margin(egui::Margin::symmetric(crate::ui::theme::spacing::PAGE_PADDING_X, 14.0)),
+                    .inner_margin(egui::Margin::symmetric(
+                        crate::ui::theme::spacing::PAGE_PADDING_X,
+                        14.0,
+                    )),
             )
             .show(ctx, |ui| {
                 ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
@@ -1000,7 +1096,7 @@ impl eframe::App for GankApp {
 
                                                         // Robust geometric hover check
                                                         let pointer_pos = ui.input(|i| i.pointer.hover_pos());
-                                                        let is_pointer_in_card = pointer_pos.map_or(false, |pos| animated_rect.contains(pos))
+                                                        let is_pointer_in_card = pointer_pos.is_some_and(|pos| animated_rect.contains(pos))
                                                             && t > 0.85;
 
                                                         let hover_t = ui.ctx().animate_bool_with_time(
@@ -1026,24 +1122,24 @@ impl eframe::App for GankApp {
                                                         if self.animated_cover_ids.contains(&game.id) {
                                                             if let Some(playback) = self.animated_covers.get_mut(&game.id) {
                                                                 let now = std::time::Instant::now();
-                                                                if now.duration_since(playback.last_frame_time) >= playback.frame_duration {
-                                                                    if !playback.compressed_frames.is_empty() {
-                                                                        playback.current_frame_idx = (playback.current_frame_idx + 1) % playback.compressed_frames.len();
-                                                                        playback.last_frame_time = now;
-                                                                        if let Ok(img) = image::load_from_memory(&playback.compressed_frames[playback.current_frame_idx]) {
-                                                                            let rgba = img.to_rgba8();
-                                                                            let size = [rgba.width() as usize, rgba.height() as usize];
-                                                                            let pixels = rgba.into_raw();
-                                                                            let color_img = egui::ColorImage::from_rgba_unmultiplied(size, &pixels);
-                                                                            if let Some(tex) = &mut playback.texture {
-                                                                                tex.set(color_img, egui::TextureOptions::LINEAR);
-                                                                            } else {
-                                                                                playback.texture = Some(ui.ctx().load_texture(
-                                                                                    format!("anim_tex_{}", game.id),
-                                                                                    color_img,
-                                                                                    egui::TextureOptions::LINEAR,
-                                                                                ));
-                                                                            }
+                                                                if now.duration_since(playback.last_frame_time) >= playback.frame_duration
+                                                                    && !playback.compressed_frames.is_empty()
+                                                                {
+                                                                    playback.current_frame_idx = (playback.current_frame_idx + 1) % playback.compressed_frames.len();
+                                                                    playback.last_frame_time = now;
+                                                                    if let Ok(img) = image::load_from_memory(&playback.compressed_frames[playback.current_frame_idx]) {
+                                                                        let rgba = img.to_rgba8();
+                                                                        let size = [rgba.width() as usize, rgba.height() as usize];
+                                                                        let pixels = rgba.into_raw();
+                                                                        let color_img = egui::ColorImage::from_rgba_unmultiplied(size, &pixels);
+                                                                        if let Some(tex) = &mut playback.texture {
+                                                                            tex.set(color_img, egui::TextureOptions::LINEAR);
+                                                                        } else {
+                                                                            playback.texture = Some(ui.ctx().load_texture(
+                                                                                format!("anim_tex_{}", game.id),
+                                                                                color_img,
+                                                                                egui::TextureOptions::LINEAR,
+                                                                            ));
                                                                         }
                                                                     }
                                                                 }

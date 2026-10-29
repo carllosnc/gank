@@ -1,14 +1,14 @@
 pub mod rawg;
-pub mod steamgrid;
 pub mod steam_store;
+pub mod steamgrid;
 
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 
-pub use crate::models::SystemRequirements;
-use crate::models::Platform;
 use crate::config::AppConfig;
+use crate::models::Platform;
+pub use crate::models::SystemRequirements;
 
 /// High-level function that enriches a game's metadata using the best available source.
 /// 1. If already cached locally in %LOCALAPPDATA%/gank/metadata/<id>.json, returns that immediately.
@@ -46,7 +46,9 @@ pub fn enrich_and_cache_game(
 
     // 4. SteamGridDB fallback/enrichment for logos & hero banners
     if let Some(ref mut meta) = result_meta {
-        if config.steamgriddb_api_key.is_some() && (meta.hero_banner_url.is_none() || meta.logo_url.is_none()) {
+        if config.steamgriddb_api_key.is_some()
+            && (meta.hero_banner_url.is_none() || meta.logo_url.is_none())
+        {
             let sgdb = steamgrid::SteamGridDbClient::new(config.steamgriddb_api_key.clone());
             let steam_id = if platform == Platform::Steam {
                 game_id.parse::<u64>().ok()
@@ -159,7 +161,13 @@ pub fn get_metadata_cache_dir() -> PathBuf {
 /// Sanitizes an ID for filesystem safety.
 fn sanitize_id(id: &str) -> String {
     id.chars()
-        .map(|c| if c.is_alphanumeric() || c == '_' || c == '-' { c } else { '_' })
+        .map(|c| {
+            if c.is_alphanumeric() || c == '_' || c == '-' {
+                c
+            } else {
+                '_'
+            }
+        })
         .collect()
 }
 
@@ -192,8 +200,7 @@ pub fn save_cached_metadata(meta: &GameMetadata) -> Result<(), std::io::Error> {
     if let Some(parent) = path.parent() {
         let _ = fs::create_dir_all(parent);
     }
-    let json = serde_json::to_string_pretty(meta)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+    let json = serde_json::to_string_pretty(meta).map_err(std::io::Error::other)?;
     fs::write(path, json)
 }
 #[cfg(test)]
@@ -207,7 +214,10 @@ mod tests {
         assert!(meta.is_some(), "Deveria encontrar dados na Steam Store API");
         let m = meta.unwrap();
         println!("Metadata fetched para Death's Door:");
-        println!("- Resumo: {:?}", m.summary.as_ref().map(|s| &s[..s.len().min(60)]));
+        println!(
+            "- Resumo: {:?}",
+            m.summary.as_ref().map(|s| &s[..s.len().min(60)])
+        );
         println!("- Gêneros: {:?}", m.genres);
         println!("- Metacritic: {:?}", m.rating);
         println!("- Release Date: {:?}", m.release_date);
@@ -215,6 +225,6 @@ mod tests {
         println!("- Minimum Specs: {:?}", m.req_minimum);
 
         assert!(!m.genres.is_empty(), "Deveria conter gêneros");
-        assert!(m.screenshots.len() > 0, "Deveria ter screenshots");
+        assert!(!m.screenshots.is_empty(), "Deveria ter screenshots");
     }
 }

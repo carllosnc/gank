@@ -11,9 +11,9 @@ pub mod colors {
     pub const BLUE_200: Color32 = Color32::from_rgb(191, 219, 254);
     pub const BLUE_300: Color32 = Color32::from_rgb(147, 197, 253);
     pub const BLUE_400: Color32 = Color32::from_rgb(96, 165, 250);
-    pub const BLUE_500: Color32 = Color32::from_rgb(59, 130, 246);  // Acento Primário
-    pub const BLUE_600: Color32 = Color32::from_rgb(37, 99, 235);  // Hover Primário
-    pub const BLUE_700: Color32 = Color32::from_rgb(29, 78, 216);  // Active Primário
+    pub const BLUE_500: Color32 = Color32::from_rgb(59, 130, 246); // Acento Primário
+    pub const BLUE_600: Color32 = Color32::from_rgb(37, 99, 235); // Hover Primário
+    pub const BLUE_700: Color32 = Color32::from_rgb(29, 78, 216); // Active Primário
     pub const BLUE_800: Color32 = Color32::from_rgb(30, 64, 175);
     pub const BLUE_900: Color32 = Color32::from_rgb(30, 58, 138);
     pub const BLUE_950: Color32 = Color32::from_rgb(23, 37, 84);
