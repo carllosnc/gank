@@ -166,19 +166,6 @@ pub fn get_popular_games() -> Vec<Game> {
     );
 
     add_game(
-        "GrandTheftAutoV",
-        "Grand Theft Auto V",
-        Platform::EpicGames,
-        "com.epicgames.launcher://apps/GrandTheftAutoV?action=launch",
-        108.4,
-        "Rockstar North",
-        "Rockstar Games",
-        "14/abr./2015",
-        &["Mundo Aberto", "Ação", "Multijogador"],
-        "Quando um jovem malandro de rua, um ladrão de bancos aposentado e um psicopata aterrorizante se veem envolvidos no submundo do crime.",
-    );
-
-    add_game(
         "292030",
         "The Witcher 3: Wild Hunt",
         Platform::Steam,
