@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.1.0] - 2026-10-29
+## [0.1.0] - 2026-10-30
 
 ### Added
 - Multi-platform game scanners for Steam, Epic Games, EA App, Ubisoft Connect, Battle.net, and Emulators/ROMs (RetroArch).
