@@ -47,9 +47,109 @@ fn init_windows_app_id() {
     }
 }
 
+#[cfg(windows)]
+mod single_instance {
+    use std::ffi::OsStr;
+    use std::os::windows::ffi::OsStrExt;
+
+    const ERROR_ALREADY_EXISTS: u32 = 183;
+    const SW_RESTORE: i32 = 9;
+
+    #[link(name = "kernel32")]
+    extern "system" {
+        fn CreateMutexW(
+            lp_mutex_attributes: *mut std::ffi::c_void,
+            b_initial_owner: i32,
+            lp_name: *const u16,
+        ) -> *mut std::ffi::c_void;
+        fn GetLastError() -> u32;
+        fn CloseHandle(h_object: *mut std::ffi::c_void) -> i32;
+    }
+
+    #[link(name = "user32")]
+    extern "system" {
+        fn FindWindowW(
+            lp_class_name: *const u16,
+            lp_window_name: *const u16,
+        ) -> *mut std::ffi::c_void;
+        fn ShowWindow(h_wnd: *mut std::ffi::c_void, n_cmd_show: i32) -> i32;
+        fn SetForegroundWindow(h_wnd: *mut std::ffi::c_void) -> i32;
+        fn BringWindowToTop(h_wnd: *mut std::ffi::c_void) -> i32;
+    }
+
+    pub struct SingleInstanceGuard {
+        handle: *mut std::ffi::c_void,
+    }
+
+    impl Drop for SingleInstanceGuard {
+        fn drop(&mut self) {
+            if !self.handle.is_null() {
+                unsafe {
+                    CloseHandle(self.handle);
+                }
+            }
+        }
+    }
+
+    pub enum Status {
+        Acquired(SingleInstanceGuard),
+        AlreadyRunning,
+    }
+
+    /// Tries to acquire a system-wide named mutex for Gank.
+    /// If an instance is already active, restores & focuses its existing window and returns `Status::AlreadyRunning`.
+    pub fn acquire(mutex_name: &str, window_title: &str) -> Status {
+        let name_wide: Vec<u16> = OsStr::new(mutex_name)
+            .encode_wide()
+            .chain(std::iter::once(0))
+            .collect();
+
+        unsafe {
+            let handle = CreateMutexW(std::ptr::null_mut(), 1, name_wide.as_ptr());
+            if handle.is_null() {
+                // If creating mutex fails for unexpected OS permissions reasons, allow launch
+                return Status::Acquired(SingleInstanceGuard {
+                    handle: std::ptr::null_mut(),
+                });
+            }
+
+            if GetLastError() == ERROR_ALREADY_EXISTS {
+                // Another instance is already running: bring its existing window to the foreground
+                let title_wide: Vec<u16> = OsStr::new(window_title)
+                    .encode_wide()
+                    .chain(std::iter::once(0))
+                    .collect();
+
+                let hwnd = FindWindowW(std::ptr::null(), title_wide.as_ptr());
+                if !hwnd.is_null() {
+                    ShowWindow(hwnd, SW_RESTORE);
+                    BringWindowToTop(hwnd);
+                    SetForegroundWindow(hwnd);
+                }
+
+                CloseHandle(handle);
+                return Status::AlreadyRunning;
+            }
+
+            Status::Acquired(SingleInstanceGuard { handle })
+        }
+    }
+}
+
 fn main() -> eframe::Result<()> {
     #[cfg(windows)]
     init_windows_app_id();
+
+    #[cfg(windows)]
+    let _single_instance_guard = match single_instance::acquire(
+        "Local\\Gank_GameHub_SingleInstance_Mutex",
+        "Gank - Game Hub",
+    ) {
+        single_instance::Status::AlreadyRunning => {
+            return Ok(());
+        }
+        single_instance::Status::Acquired(guard) => Some(guard),
+    };
 
     let wgpu_options = eframe::egui_wgpu::WgpuConfiguration {
         present_mode: eframe::wgpu::PresentMode::Fifo,
