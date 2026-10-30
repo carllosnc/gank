@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Animated cover support with automatic FFmpeg video loop conversion to 2:3 frames.
 - Embedded Windows application icon (`.ico`) and manifest resources via `winres`.
 - Windows Shell `SetCurrentProcessExplicitAppUserModelID` registration for immediate taskbar branding and grouping.
+- Windows single-instance mutex protection (`CreateMutexW`) that automatically restores and focuses the existing Gank window instead of spawning duplicate instances.
+- Official web landing page (`docs/index.html`) featuring a 1:1 WebGL cosmic dust and fluid mesh gradient shader.
 - Performance benchmark script (`tests/benchmark.ps1`) for tracking startup time, CPU, and memory footprints.
 - Automated packaging script (`scripts/package.ps1`) for generating portable release bundles with SHA256 checksums.
 - Inno Setup installer (`scripts/installer.iss` and `scripts/build-installer.ps1`) with custom branded wizard sidebars.

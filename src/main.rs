@@ -72,6 +72,7 @@ mod single_instance {
             lp_class_name: *const u16,
             lp_window_name: *const u16,
         ) -> *mut std::ffi::c_void;
+        fn IsIconic(h_wnd: *mut std::ffi::c_void) -> i32;
         fn ShowWindow(h_wnd: *mut std::ffi::c_void, n_cmd_show: i32) -> i32;
         fn SetForegroundWindow(h_wnd: *mut std::ffi::c_void) -> i32;
         fn BringWindowToTop(h_wnd: *mut std::ffi::c_void) -> i32;
@@ -122,7 +123,9 @@ mod single_instance {
 
                 let hwnd = FindWindowW(std::ptr::null(), title_wide.as_ptr());
                 if !hwnd.is_null() {
-                    ShowWindow(hwnd, SW_RESTORE);
+                    if IsIconic(hwnd) != 0 {
+                        ShowWindow(hwnd, SW_RESTORE);
+                    }
                     BringWindowToTop(hwnd);
                     SetForegroundWindow(hwnd);
                 }
