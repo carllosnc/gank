@@ -402,7 +402,18 @@ impl GankApp {
             s.spacing.scroll.bar_outer_margin = 0.0;
             s.spacing.scroll.bar_inner_margin = 2.0;
             s.spacing.scroll.bar_width = 6.0;
-            s.visuals.extreme_bg_color = egui::Color32::from_rgb(18, 20, 26);
+            s.spacing.scroll.foreground_color = false;
+            s.spacing.scroll.dormant_background_opacity = 0.0;
+            s.spacing.scroll.active_background_opacity = 0.0;
+            s.spacing.scroll.interact_background_opacity = 0.25;
+
+            // Default inactive handle stays neutral; hovered/active (focused/selected) uses Tailwind Blue
+            s.visuals.widgets.inactive.bg_fill = egui::Color32::from_rgb(100, 116, 139);
+            s.visuals.widgets.hovered.bg_fill = crate::ui::theme::colors::BLUE_400;
+            s.visuals.widgets.active.bg_fill = crate::ui::theme::colors::BLUE_500;
+
+            // Subtle sapphire track tint instead of black when interacting with the scrollbar
+            s.visuals.extreme_bg_color = egui::Color32::from_rgb(23, 37, 84);
             s.visuals.window_fill = egui::Color32::BLACK;
             s.visuals.panel_fill = egui::Color32::BLACK;
             s.visuals.window_stroke = egui::Stroke::NONE;
