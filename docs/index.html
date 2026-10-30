@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Gank — Ultra-Fast, Minimalist &amp; Open Source Game Launcher</title>
+  <meta name="description" content="A fast, lightweight, and modern desktop game shortcut hub and launcher written in Rust. Native WGPU procedural shaders, zero allocations per frame, and instant sub-90ms startup."/>
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://carllosnc.github.io/gank/"/>
+  <meta property="og:title" content="Gank — Ultra-Fast, Minimalist &amp; Open Source Game Launcher"/>
+  <meta property="og:description" content="A fast, lightweight, and modern desktop game shortcut hub and launcher written in Rust. Unify Steam, Epic, Ubisoft, EA, Battle.net, GOG, and Emulators with zero bloat."/>
+  <meta property="og:image" content="https://carllosnc.github.io/gank/assets/preview.jpg"/>
+  <meta property="og:site_name" content="Gank Game Hub"/>
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:url" content="https://carllosnc.github.io/gank/"/>
+  <meta name="twitter:title" content="Gank — Ultra-Fast, Minimalist &amp; Open Source Game Launcher"/>
+  <meta name="twitter:description" content="A fast, lightweight, and modern desktop game shortcut hub and launcher written in Rust. Unify Steam, Epic, Ubisoft, EA, Battle.net, GOG, and Emulators with zero bloat."/>
+  <meta name="twitter:image" content="https://carllosnc.github.io/gank/assets/preview.jpg"/>
+
+  <!-- Favicon & Icons -->
+  <link rel="icon" type="image/x-icon" href="assets/icon.ico"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icon.png"/>
+  <link rel="apple-touch-icon" href="assets/icon.png"/>
+
+  <!-- Google Fonts: Syne (Display), Inter, Plus Jakarta Sans & JetBrains Mono -->
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Syne:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+
+  <!-- Material Symbols Outlined -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+
+  <!-- Tailwind CSS with Forms and Container Queries -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Tailwind Configuration: Midnight Velvet & Tailwind Blue -->
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: "#eff6ff",
+              100: "#dbeafe",
+              200: "#bfdbfe",
+              300: "#93c5fd",
+              400: "#60a5fa",
+              500: "#3b82f6",
+              600: "#2563eb",
+              700: "#1d4ed8",
+              800: "#1e40af",
+              900: "#1e3a8a",
+              950: "#172554"
+            },
+            surface: {
+              base: "#050811",
+              card: "#12192b",
+              subtle: "#18233c",
+              elevated: "#1e2c4c",
+              hover: "#223356",
+              deep: "#0a0e1a"
+            }
+          },
+          fontFamily: {
+            "display-lg": ["'Syne'", "'Plus Jakarta Sans'", "sans-serif"],
+            "card-title": ["'Plus Jakarta Sans'", "sans-serif"],
+            "body-base": ["'Inter'", "sans-serif"],
+            "mono-timestamp": ["'JetBrains Mono'", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 5rem;
+    }
+    body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      background-color: #050811;
+    }
+    h1, h2, .font-display-lg {
+      font-family: 'Syne', 'Plus Jakarta Sans', sans-serif;
+      letter-spacing: -0.025em;
+      text-wrap: balance;
+    }
+    h3, .font-card-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      letter-spacing: -0.015em;
+      text-wrap: balance;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    /* Minimalist dark scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #050811;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #172238;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #2563eb;
+    }
+
+    /* Liquid Blue Glass CTA Button */
+    .btn-glass-blue {
+      position: relative;
+      background: linear-gradient(180deg, rgba(37, 99, 235, 0.85) 0%, rgba(29, 78, 216, 0.95) 100%);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      box-shadow: 
+        inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.45),
+        inset 0 -2px 3px 0 rgba(0, 0, 0, 0.4),
+        inset 0 0 20px 0 rgba(0, 0, 0, 0.25),
+        0 12px 32px -4px rgba(0, 0, 0, 0.55),
+        0 4px 12px 0 rgba(0, 0, 0, 0.4),
+        0 0 24px -2px rgba(59, 130, 246, 0.45);
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+    }
+    .btn-glass-blue > * {
+      position: relative;
+      z-index: 2;
+    }
+    .btn-glass-blue::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0.05) 60%, rgba(255, 255, 255, 0) 100%);
+      border-radius: 0 0 50% 50% / 0 0 100% 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .btn-glass-blue:hover {
+      background: linear-gradient(180deg, rgba(59, 130, 246, 0.95) 0%, rgba(37, 99, 235, 1.0) 100%);
+      border-color: rgba(255, 255, 255, 0.4);
+      box-shadow: 
+        inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.70),
+        inset 0 -2px 3px 0 rgba(0, 0, 0, 0.4),
+        inset 0 0 24px 0 rgba(0, 0, 0, 0.3),
+        0 16px 42px -4px rgba(0, 0, 0, 0.65),
+        0 6px 16px 0 rgba(0, 0, 0, 0.45),
+        0 0 32px 0 rgba(59, 130, 246, 0.6);
+      transform: translateY(-2px);
+      color: #ffffff;
+    }
+
+    /* Hero Video Frame */
+    .hero-video-frame {
+      position: relative;
+      background-color: #000000;
+      border: 1px solid rgba(147, 197, 253, 0.30);
+      border-radius: 9px;
+      box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.95);
+    }
+
+    /* Section Divider Glowing Trace (sweeps end-to-end and back) */
+    @keyframes dividerTraceSweep {
+      0% {
+        left: 0%;
+        transform: translateX(0%);
+      }
+      100% {
+        left: 100%;
+        transform: translateX(-100%);
+      }
+    }
+
+    .section-glow-divider {
+      position: relative;
+      width: 100%;
+      height: 1px;
+      background: rgba(147, 197, 253, 0.14);
+    }
+
+    /* Soft ambient blue bloom following the beam */
+    .section-glow-divider::before {
+      content: '';
+      position: absolute;
+      top: -3px;
+      width: min(320px, 35vw);
+      height: 7px;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(59, 130, 246, 0.55) 25%,
+        #60a5fa 50%,
+        rgba(59, 130, 246, 0.55) 75%,
+        transparent 100%
+      );
+      filter: blur(8px);
+      animation: dividerTraceSweep 6s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    /* Crisp bright core beam */
+    .section-glow-divider::after {
+      content: '';
+      position: absolute;
+      top: -0.5px;
+      width: min(260px, 28vw);
+      height: 2px;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(59, 130, 246, 0.6) 18%,
+        #60a5fa 38%,
+        #ffffff 50%,
+        #60a5fa 62%,
+        rgba(59, 130, 246, 0.6) 82%,
+        transparent 100%
+      );
+      animation: dividerTraceSweep 6s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    /* Scroll Reveal & Spotlight Hover Effect */
+    .reveal-card {
+      opacity: 0;
+      transform: translateY(28px) scale(0.98);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                  background-color 0.3s ease,
+                  box-shadow 0.3s ease;
+      will-change: opacity, transform;
+      position: relative;
+    }
+    .reveal-card.revealed {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    .reveal-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: radial-gradient(
+        600px circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px),
+        rgba(59, 130, 246, 0.16),
+        transparent 45%
+      );
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .reveal-card:hover::before {
+      opacity: 1;
+    }
+    .reveal-card > * {
+      position: relative;
+      z-index: 2;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal-card {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-surface-base text-zinc-100 antialiased font-body-base min-h-screen flex flex-col overflow-x-hidden selection:bg-brand-500 selection:text-white">
+
+<!-- ==================== FLOATING GITHUB BUTTON (BOTTOM RIGHT) ==================== -->
+<a
+  href="https://github.com/carllosnc/gank"
+  target="_blank"
+  rel="noopener noreferrer"
+  aria-label="View source code on GitHub"
+  class="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-surface-card/90 hover:bg-surface-elevated backdrop-blur-md border border-white/10 hover:border-brand-500/40 text-zinc-300 hover:text-white shadow-2xl shadow-black/80 transition-all duration-300 hover:scale-105 group cursor-pointer"
+>
+  <svg class="w-5 h-5 fill-current text-zinc-300 group-hover:text-brand-400 transition-colors" viewBox="0 0 24 24">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"></path>
+  </svg>
+  <span class="text-xs sm:text-sm font-semibold font-mono-timestamp">GitHub</span>
+</a>
+
+<!-- ==================== HERO SECTION ==================== -->
+<section id="hero" class="relative w-full overflow-hidden">
+  <!-- Full Screen Fluid Gradient WebGL Canvas -->
+  <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+    <canvas id="hero-gradient-canvas" class="w-full h-full block opacity-100"></canvas>
+  </div>
+
+  <div class="relative z-10 max-w-7xl mx-auto px-6 md:px-12 w-full pt-12 sm:pt-16 md:pt-20 pb-16 md:pb-24">
+    <div class="text-center max-w-4xl mx-auto">
+      <!-- Brand Wordmark Logo -->
+      <div class="mb-5 sm:mb-6 flex justify-center">
+        <a class="flex items-center text-white hover:text-zinc-200 transition-transform hover:scale-105" href="#" aria-label="Gank Home">
+          <svg viewBox="0 0 593 165" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-6 sm:h-7 md:h-8 w-auto fill-current drop-shadow-md">
+            <path d="M481.821 0H518.366L486.354 86.9703H495.419L547.12 43.4851H592.871L540.462 86.9703L548.394 164.875H511.85L509.159 121.39H473.747L457.741 164.875H421.197L481.821 0Z"/>
+            <path d="M324.85 43.4851H451.905L407.429 164.875H370.884L402.896 77.7633H348.788L316.776 164.875H280.231L324.85 43.4851Z"/>
+            <path d="M220.429 43.4851H310.94L266.463 164.875H139.266L167.878 86.9703H258.39L261.789 77.7633H207.822L220.429 43.4851ZM191.816 121.39L188.417 130.597H242.525L245.925 121.39H191.816Z"/>
+            <path d="M60.6242 0H169.408L156.801 34.2782H84.5623L49.151 130.597H103.26L115.158 98.1603H79.3214L90.2281 68.5564H162.467L127.198 164.875H0L60.6242 0Z"/>
+          </svg>
+        </a>
+      </div>
+
+      <!-- Main Heading with High Contrast Shadow Drop -->
+      <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display-lg font-normal text-white max-w-4xl mx-auto leading-[1.15] drop-shadow-md">
+        One library. Zero bloat.<br/>
+        <span class="text-brand-400">Instant gaming.</span>
+      </h1>
+
+      <!-- Clean Human-Centered Subtitle -->
+      <p class="mt-4 sm:mt-5 text-sm sm:text-base text-zinc-300/90 max-w-2xl mx-auto leading-relaxed drop-shadow-sm">
+        Free and open source. Unify all your game libraries into a fast, cinematic hub with zero background bloat.
+      </p>
+
+      <!-- Primary CTA Action (Download Full Rounded with Liquid Blue Glass) -->
+      <div class="mt-8 sm:mt-10 flex items-center justify-center gap-4">
+        <a class="btn-glass-blue px-8 py-3.5 rounded-full font-semibold text-sm sm:text-base inline-flex items-center gap-2.5 cursor-pointer select-none" href="https://github.com/carllosnc/gank/releases" target="_blank" rel="noopener noreferrer">
+          <span class="material-symbols-outlined text-xl text-white">download</span>
+          <span>Download for Windows</span>
+        </a>
+      </div>
+
+      <!-- Platform Compatibility Hint -->
+      <p class="mt-4 sm:mt-5 text-xs font-mono-timestamp text-zinc-300/80 drop-shadow-sm tracking-wide">
+        Windows 10 &amp; 11 • 64-bit • Free &amp; Open Source
+      </p>
+    </div>
+
+    <!-- HERO SHOWCASE (APP MOCKUP) -->
+    <div class="mt-12 sm:mt-14 md:mt-16 w-full mx-auto">
+      <div class="hero-video-frame relative rounded-[9px] bg-black group">
+        <!-- App Video Showcase -->
+        <div class="relative rounded-[9px] overflow-hidden bg-black z-[2]">
+          <video
+            id="hero-video"
+            class="w-full h-auto block select-none cursor-pointer bg-black rounded-[9px]"
+            autoplay
+            loop
+            muted
+            playsinline
+            preload="auto"
+            poster="assets/gank-hero-poster.jpg"
+          >
+            <source src="assets/gank-hero.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+
+          <!-- Floating Play/Pause Pill Control -->
+          <button
+            id="hero-video-toggle"
+            type="button"
+            aria-label="Pause or play video"
+            class="absolute bottom-4 right-4 z-10 px-3 py-1.5 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/10 text-white/90 hover:text-white text-xs font-mono-timestamp flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-lg"
+          >
+            <span id="hero-video-icon" class="material-symbols-outlined text-sm">pause</span>
+            <span id="hero-video-label">Pause</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== GLOWING SECTION DIVIDER ==================== -->
+<div class="w-full overflow-x-clip relative z-20" aria-hidden="true">
+  <div class="section-glow-divider"></div>
+</div>
+
+<!-- ==================== CORE FEATURES BENTO GRID ==================== -->
+<section class="py-20 px-6 md:px-12 max-w-7xl mx-auto w-full" id="features">
+  <div class="flex flex-col lg:flex-row lg:items-end justify-between mb-12 md:mb-16 gap-4 lg:gap-8">
+    <div class="max-w-2xl">
+      <span class="text-xs font-mono-timestamp text-brand-400 uppercase tracking-wider font-semibold">
+        Engineered for Speed
+      </span>
+      <h2 class="text-3xl sm:text-4xl md:text-5xl font-display-lg font-normal text-white mt-1 text-balance">
+        Built Without Compromise
+      </h2>
+    </div>
+    <p class="text-sm sm:text-base font-body-base text-zinc-400 max-w-2xl lg:max-w-md leading-relaxed">
+      Crafted in pure Rust with wgpu and egui. Designed from first principles for instant startup, zero background drag, and pure gaming immersion.
+    </p>
+  </div>
+
+  <!-- Bento Grid of 6 High-Impact Features -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    <!-- Card 1: Multi-Platform Aggregation -->
+    <div class="reveal-card p-7 rounded-2xl bg-surface-card transition-all duration-300 flex flex-col justify-start group hover:shadow-2xl hover:shadow-black/70 hover:scale-[1.01]">
+      <span class="material-symbols-outlined text-2xl text-brand-400 mb-4 block">sports_esports</span>
+      <h3 class="text-lg font-card-title text-white font-semibold group-hover:text-zinc-100 transition-colors">
+        Unified Game Library
+      </h3>
+      <p class="text-sm font-body-base text-zinc-400 mt-2.5 leading-relaxed">
+        Auto-discovers installed games across Steam, Epic Games, EA App, Ubisoft Connect, Battle.net, GOG, and ROM emulators in one place.
+      </p>
+    </div>
+
+    <!-- Card 2: Instant Cold Startup & Zero Alloc -->
+    <div class="reveal-card p-7 rounded-2xl bg-surface-card transition-all duration-300 flex flex-col justify-start group hover:shadow-2xl hover:shadow-black/70 hover:scale-[1.01]">
+      <span class="material-symbols-outlined text-2xl text-brand-400 mb-4 block">bolt</span>
+      <h3 class="text-lg font-card-title text-white font-semibold group-hover:text-zinc-100 transition-colors">
+        Instant Startup &amp; Zero Alloc
+      </h3>
+      <p class="text-sm font-body-base text-zinc-400 mt-2.5 leading-relaxed">
+        Launches from cold disk in under 90 milliseconds with zero heap allocations per frame in the main render loop for a locked 60 FPS.
+      </p>
+    </div>
+
+    <!-- Card 3: Procedural WGPU Shaders -->
+    <div class="reveal-card p-7 rounded-2xl bg-surface-card transition-all duration-300 flex flex-col justify-start group hover:shadow-2xl hover:shadow-black/70 hover:scale-[1.01]">
+      <span class="material-symbols-outlined text-2xl text-brand-400 mb-4 block">auto_awesome</span>
+      <h3 class="text-lg font-card-title text-white font-semibold group-hover:text-zinc-100 transition-colors">
+        Procedural Aurora Shaders
+      </h3>
+      <p class="text-sm font-body-base text-zinc-400 mt-2.5 leading-relaxed">
+        Real-time cosmic dust particles and fluid mesh gradient powered directly by native WGPU shaders, automatically throttling when unfocused.
+      </p>
+    </div>
+
+    <!-- Card 4: Box Art & Animated Covers -->
+    <div class="reveal-card p-7 rounded-2xl bg-surface-card transition-all duration-300 flex flex-col justify-start group hover:shadow-2xl hover:shadow-black/70 hover:scale-[1.01]">
+      <span class="material-symbols-outlined text-2xl text-brand-400 mb-4 block">image</span>
+      <h3 class="text-lg font-card-title text-white font-semibold group-hover:text-zinc-100 transition-colors">
+        Custom &amp; Animated Covers
+      </h3>
+      <p class="text-sm font-body-base text-zinc-400 mt-2.5 leading-relaxed">
+        Crisp 2:3 vertical box art. Drag and drop any image, paste directly from your clipboard (Ctrl+V), or use animated video loops.
+      </p>
+    </div>
+
+    <!-- Card 5: Ultra-Low Resource Usage -->
+    <div class="reveal-card p-7 rounded-2xl bg-surface-card transition-all duration-300 flex flex-col justify-start group hover:shadow-2xl hover:shadow-black/70 hover:scale-[1.01]">
+      <span class="material-symbols-outlined text-2xl text-brand-400 mb-4 block">memory</span>
+      <h3 class="text-lg font-card-title text-white font-semibold group-hover:text-zinc-100 transition-colors">
+        Ultra-Low Footprint
+      </h3>
+      <p class="text-sm font-body-base text-zinc-400 mt-2.5 leading-relaxed">
+        Built with the mimalloc allocator and automatic working set trimming. Uses ~32 MB of RAM and under 0.4% idle CPU while you play.
+      </p>
+    </div>
+
+    <!-- Card 6: 100% Local & Privacy First -->
+    <div class="reveal-card p-7 rounded-2xl bg-surface-card transition-all duration-300 flex flex-col justify-start group hover:shadow-2xl hover:shadow-black/70 hover:scale-[1.01]">
+      <span class="material-symbols-outlined text-2xl text-brand-400 mb-4 block">shield</span>
+      <h3 class="text-lg font-card-title text-white font-semibold group-hover:text-zinc-100 transition-colors">
+        Zero Telemetry &amp; Privacy
+      </h3>
+      <p class="text-sm font-body-base text-zinc-400 mt-2.5 leading-relaxed">
+        No accounts, no analytics, no background tracking, and no ads. All game manifests and cover caches stay strictly on your local drive.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="mt-auto border-t border-white/[0.06] bg-surface-deep/80 relative z-10">
+  <div class="max-w-7xl mx-auto px-6 md:px-12 pt-16 pb-12 w-full">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+      <!-- Col 1: Brand Info -->
+      <div class="md:col-span-2">
+        <div class="flex items-center gap-3 mb-4">
+          <svg width="292" height="292" viewBox="0 0 292 292" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 shrink-0">
+            <rect width="292" height="292" fill="#1446E9"/>
+            <path d="M120.039 58H236.745L223.221 94.7745H145.721L107.73 198.108H165.78L178.544 163.309H140.098L151.799 131.549H229.299L191.461 234.883H55L120.039 58Z" fill="white"/>
+          </svg>
+          <span class="font-display-lg font-bold text-xl text-white tracking-tight">Gank</span>
+        </div>
+        <p class="text-sm font-body-base text-zinc-400 leading-relaxed max-w-sm mb-6">
+          Fast, minimalist, and elegant desktop game shortcut hub and launcher written in Rust. Unify your gaming experience.
+        </p>
+        <div class="flex items-center gap-3">
+          <a href="https://github.com/carllosnc/gank" target="_blank" rel="noopener noreferrer" class="p-2 rounded-lg bg-surface-card hover:bg-surface-elevated border border-white/10 text-zinc-300 hover:text-white transition-colors">
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"></path>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Col 2: Project Links -->
+      <div>
+        <h4 class="text-xs font-mono-timestamp text-zinc-300 uppercase tracking-wider font-semibold mb-4">
+          Project
+        </h4>
+        <ul class="flex flex-col gap-2 text-sm font-body-base text-zinc-400">
+          <li><a href="https://github.com/carllosnc/gank/releases" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">Releases &amp; Downloads</a></li>
+          <li><a href="https://github.com/carllosnc/gank/blob/master/CHANGELOG.md" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">Changelog</a></li>
+          <li><a href="https://github.com/carllosnc/gank/blob/master/README.md" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">Documentation</a></li>
+          <li><a href="https://github.com/carllosnc/gank/blob/master/LICENSE" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">MIT License</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 3: Guarantees -->
+      <div>
+        <h4 class="text-xs font-mono-timestamp text-zinc-300 uppercase tracking-wider font-semibold mb-4">
+          Guarantees
+        </h4>
+        <ul class="flex flex-col gap-2.5 text-sm font-body-base text-zinc-400">
+          <li class="flex items-center gap-2 text-zinc-300">
+            <span class="material-symbols-outlined text-sm text-brand-400">lock</span>
+            Zero Telemetry
+          </li>
+          <li class="flex items-center gap-2 text-zinc-300">
+            <span class="material-symbols-outlined text-sm text-brand-400">wifi_off</span>
+            100% Offline &amp; Local
+          </li>
+          <li class="flex items-center gap-2 text-zinc-300">
+            <span class="material-symbols-outlined text-sm text-brand-400">bolt</span>
+            Sub-90ms Startup
+          </li>
+          <li class="flex items-center gap-2 text-zinc-300">
+            <span class="material-symbols-outlined text-sm text-brand-400">verified</span>
+            MIT Open Source
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom Bar: Copyright & Back-to-Top -->
+    <div class="pt-8 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-body-base text-zinc-500">
+      <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
+        <p>© 2026 Gank Game Hub. Free &amp; Open Source.</p>
+        <span class="hidden sm:inline text-zinc-700">•</span>
+        <p>Crafted with care by <a class="text-zinc-400 hover:text-white hover:underline transition-colors font-medium" href="https://github.com/carllosnc" target="_blank" rel="noopener noreferrer">@carllosnc</a></p>
+      </div>
+
+      <a href="#hero" class="text-xs font-mono-timestamp text-zinc-400 hover:text-brand-400 transition-colors flex items-center gap-1">
+        <span>Back to top</span>
+        <span class="material-symbols-outlined text-sm">arrow_upward</span>
+      </a>
+    </div>
+  </div>
+</footer>
+
+<!-- ==================== NATIVE COSMIC DUST & MESH GRADIENT WEBGL ENGINE ==================== -->
+<script>
+  (function initCosmicDustShader() {
+    var canvas = document.getElementById('hero-gradient-canvas');
+    var heroSection = document.getElementById('hero');
+    if (!canvas || !heroSection) return;
+
+    var gl = canvas.getContext('webgl', { alpha: false, antialias: false, powerPreference: 'high-performance' })
+          || canvas.getContext('experimental-webgl');
+    if (!gl) return;
+
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    function resize() {
+      var rect = canvas.parentElement.getBoundingClientRect();
+      var w = Math.floor(rect.width);
+      var h = Math.floor(rect.height);
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+    }
+    window.addEventListener('resize', resize, { passive: true });
+    resize();
+
+    // Vertex Shader: Fullscreen quad
+    var vsSource = [
+      'attribute vec2 position;',
+      'varying vec2 vUv;',
+      'void main() {',
+      '  vUv = vec2(position.x * 0.5 + 0.5, 0.5 - position.y * 0.5);',
+      '  gl_Position = vec4(position, 0.0, 1.0);',
+      '}'
+    ].join('\n');
+
+    // Fragment Shader: Direct port of Gank\'s native WGSL Aurora & Cosmic Dust shader
+    var fsSource = [
+      '#ifdef GL_FRAGMENT_PRECISION_HIGH',
+      '  precision highp float;',
+      '#else',
+      '  precision mediump float;',
+      '#endif',
+
+      'uniform vec2 u_resolution;',
+      'uniform float u_time;',
+      'varying vec2 vUv;',
+
+      '#define PI 3.14159265359',
+
+      'vec2 hash22(vec2 p) {',
+      '  vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));',
+      '  p3 += dot(p3, p3.yzx + 33.33);',
+      '  return fract((p3.xx + p3.yz) * p3.zy);',
+      '}',
+
+      'float hash12(vec2 p) {',
+      '  vec3 p3 = fract(vec3(p.xyx) * 0.1031);',
+      '  p3 += dot(p3, p3.yzx + 33.33);',
+      '  return fract((p3.x + p3.y) * p3.z);',
+      '}',
+
+      '// Procedural floating cosmic dust layer with smooth neighbor search',
+      'vec3 dust_layer(vec2 uv, float scale, float speed, float brightness, float t) {',
+      '  vec2 p = uv * scale;',
+      '  vec2 id = floor(p);',
+      '  vec2 gv = fract(p) - 0.5;',
+      '  vec3 color = vec3(0.0);',
+
+      '  for (int y = -1; y <= 1; y++) {',
+      '    for (int x = -1; x <= 1; x++) {',
+      '      vec2 offset = vec2(float(x), float(y));',
+      '      vec2 cell_id = id + offset;',
+      '      vec2 rnd = hash22(cell_id);',
+
+      '      // Gentle drift upwards with smooth organic horizontal sway',
+      '      float drift_y = fract(rnd.y - t * speed * (0.55 + rnd.x * 0.45));',
+      '      float sway_x = sin(t * 0.65 + rnd.x * 6.2831853) * 0.16;',
+
+      '      vec2 particle_pos = offset + (vec2(rnd.x, drift_y) - 0.5) + vec2(sway_x, 0.0);',
+      '      float d = length(gv - particle_pos);',
+      '      float size = 0.085 + rnd.x * 0.070;',
+
+      '      if (d < 0.28) {',
+      '        float life_fade = sin(drift_y * PI);',
+      '        float life_smooth = life_fade * life_fade;',
+      '        float twinkle = (sin(t * 1.2 + rnd.y * 6.2831853) * 0.20 + 0.80) * life_smooth;',
+
+      '        float dist_sq = d * d;',
+      '        float inv_s2 = 1.0 / (size * size);',
+      '        float core = exp(-dist_sq * (280.0 * inv_s2)) * 1.45 * twinkle;',
+      '        float halo = max(0.0, 1.0 - d * (3.5 / size)) * 0.35 * twinkle;',
+      '        float white_core = exp(-dist_sq * (900.0 * inv_s2)) * 0.40 * twinkle;',
+
+      '        vec3 mote_color = mix(',
+      '          vec3(0.20, 0.48, 0.95), // Vibrant Electric Sapphire',
+      '          vec3(0.35, 0.78, 1.00), // Luminous Crystal Azure',
+      '          rnd.y',
+      '        );',
+
+      '        color += (mote_color * (core + halo) + vec3(0.75, 0.88, 1.00) * white_core) * brightness;',
+      '      }',
+      '    }',
+      '  }',
+      '  return color;',
+      '}',
+
+      '// Organic Liquid Mesh Gradient background with rich undulating blue shades',
+      'vec3 mesh_gradient(vec2 uv, float t) {',
+      '  float slow_t = t * 0.25;',
+
+      '  vec2 q = uv;',
+      '  q.x += sin(uv.y * 2.8 + slow_t * 0.9) * 0.26 + cos(uv.x * 2.2 - slow_t * 0.7) * 0.16;',
+      '  q.y += cos(uv.x * 2.5 - slow_t * 0.8) * 0.26 + sin(uv.y * 2.4 + slow_t * 0.6) * 0.16;',
+
+      '  vec2 q2 = vec2(',
+      '    sin(q.y * 3.2 - slow_t * 0.5) * 0.12,',
+      '    cos(q.x * 3.0 + slow_t * 0.5) * 0.12',
+      '  );',
+      '  vec2 p_warp = q + q2;',
+
+      '  vec2 c1 = vec2(0.28 + 0.30 * sin(slow_t * 0.65 + 0.3), 0.32 + 0.25 * cos(slow_t * 0.80 + 1.2));',
+      '  vec2 c2 = vec2(0.75 + 0.25 * cos(slow_t * 0.75 + 2.1), 0.28 + 0.28 * sin(slow_t * 0.55 + 0.8));',
+      '  vec2 c3 = vec2(0.32 + 0.28 * cos(slow_t * 0.45 + 3.4), 0.78 + 0.22 * sin(slow_t * 0.70 + 2.6));',
+      '  vec2 c4 = vec2(0.78 + 0.24 * sin(slow_t * 0.85 + 4.3), 0.72 + 0.26 * cos(slow_t * 0.60 + 3.2));',
+      '  vec2 c5 = vec2(0.50 + 0.22 * sin(slow_t * 1.05 + 1.7), 0.50 + 0.22 * cos(slow_t * 0.90 + 5.0));',
+
+      '  vec3 col_base     = vec3(0.008, 0.018, 0.045); // Dark Midnight Velvet Base',
+      '  vec3 col_sapphire = vec3(0.042, 0.170, 0.420); // Deep Sapphire',
+      '  vec3 col_cobalt   = vec3(0.060, 0.230, 0.520); // Luminous Nocturnal Cobalt',
+      '  vec3 col_ocean    = vec3(0.025, 0.180, 0.330); // Oceanic Teal-Blue',
+      '  vec3 col_indigo   = vec3(0.070, 0.130, 0.400); // Electric Night Indigo',
+      '  vec3 col_royal    = vec3(0.038, 0.140, 0.350); // Royal Velvet Blue',
+
+      '  float d1 = length(p_warp - c1);',
+      '  float d2 = length(p_warp - c2);',
+      '  float d3 = length(p_warp - c3);',
+      '  float d4 = length(p_warp - c4);',
+      '  float d5 = length(p_warp - c5);',
+
+      '  float b1 = smoothstep(0.95, 0.08, d1);',
+      '  float b2 = smoothstep(0.90, 0.08, d2);',
+      '  float b3 = smoothstep(0.85, 0.08, d3);',
+      '  float b4 = smoothstep(0.92, 0.08, d4);',
+      '  float b5 = smoothstep(0.80, 0.08, d5);',
+
+      '  vec3 bg = col_base;',
+      '  bg = mix(bg, col_sapphire, b1 * 0.65);',
+      '  bg = mix(bg, col_cobalt,   b2 * 0.60);',
+      '  bg = mix(bg, col_ocean,    b3 * 0.55);',
+      '  bg = mix(bg, col_indigo,   b4 * 0.55);',
+      '  bg = mix(bg, col_royal,    b5 * 0.60);',
+
+      '  float wave = sin(p_warp.x * 3.5 + p_warp.y * 3.0 + slow_t * 1.2) * cos(p_warp.y * 2.8 - slow_t * 0.8);',
+      '  bg = bg * (0.80 + 0.25 * (wave * 0.5 + 0.5));',
+      '  return bg;',
+      '}',
+
+      'void main() {',
+      '  vec2 uv = vUv;',
+      '  float aspect = u_resolution.x / u_resolution.y;',
+      '  vec2 p = vec2(uv.x * aspect, uv.y);',
+      '  float t = mod(u_time, 628.31853);',
+
+      '  // 1. DYNAMIC BLUE MESH GRADIENT BACKGROUND',
+      '  vec3 bg = mesh_gradient(uv, t);',
+
+      '  // 2. PARALLAX FLOATING DUST PARTICLES (exact match to Gank WGSL)',
+      '  vec3 dust_mid  = dust_layer(p + vec2(2.4, 5.1), 4.2, 0.055, 1.35, t);',
+      '  vec3 dust_near = dust_layer(p + vec2(7.2, 3.8), 2.2, 0.085, 0.95, t);',
+      '  vec3 final_col = bg + dust_mid + dust_near;',
+
+      '  // 3. EDGE VIGNETTE',
+      '  float center_dist = length(uv - vec2(0.5, 0.5));',
+      '  float vignette = smoothstep(1.30, 0.40, center_dist);',
+      '  final_col *= (0.90 + 0.10 * vignette);',
+
+      '  // 4. SUBTLE DITHER',
+      '  float dither = (hash12(uv * 1200.0 + fract(t)) - 0.5) * (1.0 / 220.0);',
+      '  final_col += vec3(dither);',
+
+      '  gl_FragColor = vec4(final_col, 1.0);',
+      '}'
+    ].join('\n');
+
+    function createShader(type, src) {
+      var s = gl.createShader(type);
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+        console.error('Shader compile error:', gl.getShaderInfoLog(s));
+      }
+      return s;
+    }
+
+    var program = gl.createProgram();
+    gl.attachShader(program, createShader(gl.VERTEX_SHADER, vsSource));
+    gl.attachShader(program, createShader(gl.FRAGMENT_SHADER, fsSource));
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.error('Program link error:', gl.getProgramInfoLog(program));
+    }
+    gl.useProgram(program);
+
+    // Fullscreen Quad Geometry
+    var quadBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+      -1, -1,
+       1, -1,
+      -1,  1,
+      -1,  1,
+       1, -1,
+       1,  1
+    ]), gl.STATIC_DRAW);
+
+    var posAttr = gl.getAttribLocation(program, 'position');
+    gl.enableVertexAttribArray(posAttr);
+    gl.vertexAttribPointer(posAttr, 2, gl.FLOAT, false, 0, 0);
+
+    // Uniform Locations
+    var resLoc  = gl.getUniformLocation(program, 'u_resolution');
+    var timeLoc = gl.getUniformLocation(program, 'u_time');
+
+    // Pause WebGL rendering when scrolled out of view to conserve battery
+    var isVisible = true;
+    var animId = null;
+    var startTime = performance.now();
+
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        isVisible = entry.isIntersecting;
+        if (isVisible && !animId) {
+          animId = requestAnimationFrame(render);
+        } else if (!isVisible && animId) {
+          cancelAnimationFrame(animId);
+          animId = null;
+        }
+      });
+    }, { threshold: 0.02 });
+    observer.observe(heroSection);
+
+    function render(now) {
+      if (!isVisible) return;
+      var t = (now - startTime) * 0.001;
+      gl.uniform2f(resLoc, canvas.width, canvas.height);
+      gl.uniform1f(timeLoc, t);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+      animId = requestAnimationFrame(render);
+    }
+    animId = requestAnimationFrame(render);
+  })();
+
+  // Hero Video Play/Pause Toggle
+  (function initHeroVideo() {
+    var video = document.getElementById('hero-video');
+    var toggleBtn = document.getElementById('hero-video-toggle');
+    var icon = document.getElementById('hero-video-icon');
+    var label = document.getElementById('hero-video-label');
+    if (!video) return;
+
+    function updateState() {
+      if (video.paused) {
+        if (icon) icon.textContent = 'play_arrow';
+        if (label) label.textContent = 'Play';
+        if (toggleBtn) {
+          toggleBtn.classList.remove('opacity-0');
+          toggleBtn.classList.add('opacity-100');
+        }
+      } else {
+        if (icon) icon.textContent = 'pause';
+        if (label) label.textContent = 'Pause';
+        if (toggleBtn) {
+          toggleBtn.classList.remove('opacity-100');
+          toggleBtn.classList.add('opacity-0');
+        }
+      }
+    }
+
+    function togglePlay() {
+      if (video.paused) {
+        video.play();
+      } else {
+        video.pause();
+      }
+      updateState();
+    }
+
+    if (toggleBtn) toggleBtn.addEventListener('click', togglePlay);
+    video.addEventListener('click', togglePlay);
+    video.addEventListener('play', updateState);
+    video.addEventListener('pause', updateState);
+  })();
+
+  // Scroll Reveal & Mouse Spotlight for Bento Cards
+  document.addEventListener('DOMContentLoaded', function() {
+    var cards = document.querySelectorAll('.reveal-card');
+
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    cards.forEach(function(card) {
+      observer.observe(card);
+      card.addEventListener('mousemove', function(e) {
+        var rect = card.getBoundingClientRect();
+        card.style.setProperty('--mouse-x', (e.clientX - rect.left) + 'px');
+        card.style.setProperty('--mouse-y', (e.clientY - rect.top) + 'px');
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
