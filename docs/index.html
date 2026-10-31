@@ -177,6 +177,7 @@
       border: 1px solid rgba(147, 197, 253, 0.30);
       border-radius: 9px;
       box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.95);
+      aspect-ratio: 1192 / 788;
     }
 
     /* Section Divider Glowing Trace (sweeps end-to-end and back) */
@@ -350,12 +351,15 @@
 
     <!-- HERO SHOWCASE (APP MOCKUP) -->
     <div class="mt-12 sm:mt-14 md:mt-16 w-full mx-auto">
-      <div class="hero-video-frame relative rounded-[9px] bg-black group">
+      <div class="hero-video-frame relative rounded-[9px] bg-black group" style="aspect-ratio: 1192 / 788;">
         <!-- App Video Showcase -->
-        <div class="relative rounded-[9px] overflow-hidden bg-black z-[2]">
+        <div class="relative rounded-[9px] overflow-hidden bg-black z-[2] w-full" style="aspect-ratio: 1192 / 788;">
           <video
             id="hero-video"
+            width="1192"
+            height="788"
             class="w-full h-auto block select-none cursor-pointer bg-black rounded-[9px]"
+            style="aspect-ratio: 1192 / 788;"
             autoplay
             loop
             muted
@@ -567,17 +571,49 @@
           || canvas.getContext('experimental-webgl');
     if (!gl) return;
 
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
-
     function resize() {
-      var rect = canvas.parentElement.getBoundingClientRect();
-      var w = Math.floor(rect.width);
-      var h = Math.floor(rect.height);
-      canvas.width = Math.floor(w * dpr);
-      canvas.height = Math.floor(h * dpr);
-      gl.viewport(0, 0, canvas.width, canvas.height);
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var rect = heroSection.getBoundingClientRect();
+      var w = Math.floor(rect.width || canvas.clientWidth || window.innerWidth);
+      var h = Math.floor(rect.height || canvas.clientHeight || window.innerHeight);
+      if (w <= 0 || h <= 0) return false;
+
+      var targetW = Math.max(1, Math.floor(w * dpr));
+      var targetH = Math.max(1, Math.floor(h * dpr));
+
+      if (canvas.width !== targetW || canvas.height !== targetH) {
+        canvas.width = targetW;
+        canvas.height = targetH;
+        gl.viewport(0, 0, targetW, targetH);
+        return true;
+      }
+      return false;
     }
+
     window.addEventListener('resize', resize, { passive: true });
+    window.addEventListener('orientationchange', resize, { passive: true });
+    window.addEventListener('load', resize, { passive: true });
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(resize);
+    }
+
+    var heroVideoEl = document.getElementById('hero-video');
+    if (heroVideoEl) {
+      ['loadedmetadata', 'loadeddata', 'canplay'].forEach(function(evt) {
+        heroVideoEl.addEventListener(evt, resize, { passive: true });
+      });
+    }
+
+    if (typeof ResizeObserver !== 'undefined') {
+      var ro = new ResizeObserver(function() {
+        resize();
+      });
+      ro.observe(heroSection);
+      if (canvas.parentElement) {
+        ro.observe(canvas.parentElement);
+      }
+    }
+
     resize();
 
     // Vertex Shader: Fullscreen quad
@@ -714,7 +750,7 @@
 
       'void main() {',
       '  vec2 uv = vUv;',
-      '  float aspect = u_resolution.x / u_resolution.y;',
+      '  float aspect = u_resolution.x / max(u_resolution.y, 1.0);',
       '  vec2 p = vec2(uv.x * aspect, uv.y);',
       '  float t = mod(u_time, 628.31853);',
 
@@ -796,8 +832,26 @@
     }, { threshold: 0.02 });
     observer.observe(heroSection);
 
+    // Handle WebGL context loss safely
+    canvas.addEventListener('webglcontextlost', function(e) {
+      e.preventDefault();
+      if (animId) {
+        cancelAnimationFrame(animId);
+        animId = null;
+      }
+    }, false);
+
     function render(now) {
       if (!isVisible) return;
+
+      // Ensure canvas internal resolution is synchronized with displayed CSS size on every frame
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var dispW = Math.max(1, Math.floor((canvas.clientWidth || heroSection.clientWidth || 300) * dpr));
+      var dispH = Math.max(1, Math.floor((canvas.clientHeight || heroSection.clientHeight || 150) * dpr));
+      if (canvas.width !== dispW || canvas.height !== dispH) {
+        resize();
+      }
+
       var t = (now - startTime) * 0.001;
       gl.uniform2f(resLoc, canvas.width, canvas.height);
       gl.uniform1f(timeLoc, t);
